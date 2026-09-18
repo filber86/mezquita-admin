@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase';
 const navigation = [
   { href: '/', label: 'Inicio', icon: '⌂' },
   { href: '/avisos', label: 'Avisos', icon: '●' },
+  { href: '/calendario', label: 'Calendario', icon: '▣' },
   { href: '/configuracion', label: 'Configuración', icon: '⚙' },
   { href: '/destacados', label: 'Destacados', icon: '★' },
 ];
