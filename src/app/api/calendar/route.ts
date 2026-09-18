@@ -3,13 +3,41 @@ import ical from 'node-ical';
 
 export const dynamic = 'force-dynamic';
 
+type ParsedCalendarEvent = {
+  type: 'VEVENT';
+  uid?: string;
+  summary?: string;
+  description?: string;
+  location?: string;
+  start: Date;
+  end?: Date;
+};
+
+function isCalendarEvent(
+  item: unknown
+): item is ParsedCalendarEvent {
+  if (!item || typeof item !== 'object') {
+    return false;
+  }
+
+  const candidate = item as Record<string, unknown>;
+
+  return (
+    candidate.type === 'VEVENT' &&
+    candidate.start instanceof Date
+  );
+}
+
 export async function GET() {
   try {
     const calendarUrl = process.env.CALENDAR_ICS_URL;
 
     if (!calendarUrl) {
       return NextResponse.json(
-        { error: 'CALENDAR_ICS_URL no está configurada' },
+        {
+          connected: false,
+          error: 'CALENDAR_ICS_URL no está configurada',
+        },
         { status: 500 }
       );
     }
@@ -25,17 +53,18 @@ export async function GET() {
     }
 
     const icsText = await response.text();
-
     const parsed = ical.sync.parseICS(icsText);
+
+    // IMPORTANTE:
+    // Convertimos explícitamente a unknown[]
+    // para que nuestro type guard pueda estrechar el tipo.
+    const components: unknown[] =
+      Object.values(parsed);
 
     const now = new Date();
 
-    const events = Object.values(parsed)
-      .filter(
-        (item): item is ical.VEvent =>
-          item.type === 'VEVENT' &&
-          item.start instanceof Date
-      )
+    const events = components
+      .filter(isCalendarEvent)
       .map((event) => ({
         id:
           typeof event.uid === 'string'
@@ -82,7 +111,7 @@ export async function GET() {
       events,
     });
   } catch (error) {
-    console.error(error);
+    console.error('Calendar API error:', error);
 
     return NextResponse.json(
       {
