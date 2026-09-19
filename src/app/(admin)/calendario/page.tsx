@@ -76,7 +76,7 @@ export default function CalendarioPage() {
             Estado
           </p>
 
-          <p className="mt-3 text-xl font-bold text-[#18392e]">
+          <p className="mt-3 text-xl font-bold text-primary-dark">
             {loading
               ? 'Comprobando…'
               : data?.connected
@@ -90,7 +90,7 @@ export default function CalendarioPage() {
             Próximos eventos
           </p>
 
-          <p className="mt-3 text-3xl font-bold text-[#18392e]">
+          <p className="mt-3 text-3xl font-bold text-primary-dark">
             {data?.count ?? '—'}
           </p>
         </div>
@@ -100,7 +100,7 @@ export default function CalendarioPage() {
             Última actualización
           </p>
 
-          <p className="mt-3 text-sm font-bold text-[#18392e]">
+          <p className="mt-3 text-sm font-bold text-primary-dark">
             {data?.updatedAt
               ? new Intl.DateTimeFormat('es-ES', {
                   hour: '2-digit',
@@ -118,7 +118,7 @@ export default function CalendarioPage() {
       <section className="mt-8">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-[#18392e]">
+            <h2 className="text-xl font-bold text-primary-dark">
               Próximos eventos
             </h2>
 
@@ -130,7 +130,7 @@ export default function CalendarioPage() {
           <button
             onClick={loadCalendar}
             disabled={loading}
-            className="rounded-xl bg-[#18543e] px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+            className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
             {loading
               ? 'Actualizando…'
@@ -157,7 +157,7 @@ export default function CalendarioPage() {
                     {formatDate(event.start)}
                   </p>
 
-                  <h3 className="mt-2 text-lg font-bold text-[#18392e]">
+                  <h3 className="mt-2 text-lg font-bold text-primary-dark">
                     {event.title}
                   </h3>
 

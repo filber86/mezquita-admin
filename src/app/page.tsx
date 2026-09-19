@@ -179,7 +179,7 @@ export default function Home() {
             MEZQUITA MAYOR
           </p>
 
-          <h1 className="mt-2 text-center text-3xl font-bold text-[#18392e]">
+          <h1 className="mt-2 text-center text-3xl font-bold text-primary-dark">
             Granada
           </h1>
 
@@ -203,7 +203,7 @@ export default function Home() {
                 onChange={(e) =>
                   setEmail(e.target.value)
                 }
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#24634c]"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-primary"
               />
             </div>
 
@@ -219,7 +219,7 @@ export default function Home() {
                 onChange={(e) =>
                   setPassword(e.target.value)
                 }
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#24634c]"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-primary"
               />
             </div>
 
@@ -231,7 +231,7 @@ export default function Home() {
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-[#18543e] px-4 py-3 font-bold text-white"
+              className="w-full rounded-xl bg-primary px-4 py-3 font-bold text-white"
             >
               Iniciar sesión
             </button>
@@ -319,7 +319,7 @@ export default function Home() {
 
           {/* ACCIONES */}
           <section className="mt-8">
-            <h2 className="text-xl font-bold text-[#18392e]">
+            <h2 className="text-xl font-bold text-primary-dark">
               Acciones rápidas
             </h2>
 
@@ -348,7 +348,7 @@ export default function Home() {
           <section className="mt-8 rounded-3xl bg-white p-6 shadow-sm md:p-8">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-bold text-[#18392e]">
+                <h2 className="text-xl font-bold text-primary-dark">
                   Estado de la app
                 </h2>
 
@@ -360,7 +360,7 @@ export default function Home() {
 
               <button
                 onClick={loadDashboard}
-                className="text-sm font-bold text-[#18543e]"
+                className="text-sm font-bold text-primary"
               >
                 Actualizar
               </button>
@@ -436,7 +436,7 @@ function DashboardCard({
           />
         ) : null}
 
-        <p className="text-3xl font-bold text-[#18392e]">
+        <p className="text-3xl font-bold text-primary-dark">
           {value}
         </p>
       </div>
@@ -464,7 +464,7 @@ function QuickAction({
       href={href}
       className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
     >
-      <p className="font-bold text-[#18392e]">
+      <p className="font-bold text-primary-dark">
         {title}
       </p>
 
@@ -472,7 +472,7 @@ function QuickAction({
         {description}
       </p>
 
-      <p className="mt-4 text-sm font-bold text-[#18543e]">
+      <p className="mt-4 text-sm font-bold text-primary">
         Abrir →
       </p>
     </Link>

@@ -210,7 +210,7 @@ export default function DestacadosPage() {
       <section className="rounded-3xl bg-white p-6 shadow-sm md:p-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-bold text-[#18392e]">
+            <h2 className="text-xl font-bold text-primary-dark">
               {editingId
                 ? 'Editar destacado'
                 : 'Nuevo destacado'}
@@ -305,7 +305,7 @@ export default function DestacadosPage() {
                     ? 'ID del vídeo de YouTube'
                     : 'ID del post de WordPress'
               }
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#24634c]"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-primary"
             />
 
             <p className="mt-2 text-xs text-gray-400">
@@ -328,7 +328,7 @@ export default function DestacadosPage() {
                   title: e.target.value,
                 })
               }
-              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#24634c]"
+              className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-primary"
             />
           </div>
 
@@ -353,7 +353,7 @@ export default function DestacadosPage() {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-xl bg-[#18543e] px-5 py-3 font-bold text-white disabled:opacity-50"
+              className="rounded-xl bg-primary px-5 py-3 font-bold text-white disabled:opacity-50"
             >
               {saving
                 ? 'Guardando…'
@@ -367,13 +367,13 @@ export default function DestacadosPage() {
 
       <section className="mt-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-[#18392e]">
+          <h2 className="text-xl font-bold text-primary-dark">
             Contenido destacado
           </h2>
 
           <button
             onClick={loadItems}
-            className="text-sm font-bold text-[#18543e]"
+            className="text-sm font-bold text-primary"
           >
             Actualizar
           </button>
@@ -400,7 +400,7 @@ export default function DestacadosPage() {
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full bg-[#edf5f1] px-2.5 py-1 text-xs font-bold text-[#18543e]">
+                    <span className="rounded-full bg-primary-light px-2.5 py-1 text-xs font-bold text-primary">
                       {typeLabel(item.type)}
                     </span>
 
@@ -417,7 +417,7 @@ export default function DestacadosPage() {
                     </span>
                   </div>
 
-                  <h3 className="mt-3 font-bold text-[#18392e]">
+                  <h3 className="mt-3 font-bold text-primary-dark">
                     {item.title ||
                       item.external_id}
                   </h3>
@@ -447,7 +447,7 @@ export default function DestacadosPage() {
                     onClick={() =>
                       editItem(item)
                     }
-                    className="rounded-lg bg-[#edf5f1] px-3 py-2 text-xs font-bold text-[#18543e]"
+                    className="rounded-lg bg-primary-light px-3 py-2 text-xs font-bold text-primary"
                   >
                     Editar
                   </button>

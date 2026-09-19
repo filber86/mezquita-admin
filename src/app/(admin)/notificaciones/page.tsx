@@ -260,7 +260,7 @@ return (
         <button
           type="submit"
           disabled={sending || !title.trim() || !message.trim() || (targetOption.needsId && !targetId.trim())}
-          className="mt-6 rounded-lg bg-[#18543e] px-5 py-3 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-6 rounded-lg bg-primary px-5 py-3 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
           {sending ? 'Enviando...' : 'Enviar a todos'}
         </button>

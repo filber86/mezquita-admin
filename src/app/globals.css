@@ -3,11 +3,19 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Azul de marca real de la Mezquita (mezquitadegranada.com, tema Flatsome:
+     --fs-color-primary/--fs-color-secondary) — no verde, verificado. */
+  --color-primary: #396283;
+  --color-primary-dark: #203c53;
+  --color-primary-light: #e4eaf1;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-primary-light: var(--color-primary-light);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

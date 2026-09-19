@@ -41,7 +41,7 @@ export function AdminShell({
           <p className="text-[9px] font-black tracking-[0.22em] text-[#b28b45]">
             MEZQUITA MAYOR
           </p>
-          <p className="font-bold text-[#18392e]">
+          <p className="font-bold text-primary-dark">
             Administración
           </p>
         </div>
@@ -68,7 +68,7 @@ export function AdminShell({
               href={item.href}
               className={`whitespace-nowrap rounded-xl px-4 py-2 text-sm font-semibold ${
                 active
-                  ? 'bg-[#18543e] text-white'
+                  ? 'bg-primary text-white'
                   : 'bg-[#f5f6f3] text-gray-600'
               }`}
             >
@@ -79,7 +79,7 @@ export function AdminShell({
       </nav>
 
       {/* Sidebar escritorio */}
-      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-[#153d30] p-6 text-white lg:flex">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-primary-dark p-6 text-white lg:flex">
         <div>
           <p className="text-[10px] font-black tracking-[0.25em] text-[#d8b66f]">
             MEZQUITA MAYOR
@@ -107,7 +107,7 @@ export function AdminShell({
                 href={item.href}
                 className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
                   active
-                    ? 'bg-white text-[#18543e]'
+                    ? 'bg-white text-primary'
                     : 'text-white/75 hover:bg-white/10 hover:text-white'
                 }`}
               >
@@ -140,7 +140,7 @@ export function AdminShell({
                 MEZQUITA MAYOR DE GRANADA
               </p>
 
-              <h2 className="mt-2 text-3xl font-bold text-[#18392e]">
+              <h2 className="mt-2 text-3xl font-bold text-primary-dark">
                 {title}
               </h2>
 

@@ -144,7 +144,7 @@ export default function ConfiguracionPage() {
 
           <section className="rounded-3xl bg-white p-6 shadow-sm md:p-8">
             <div>
-              <h2 className="text-xl font-bold text-[#18392e]">
+              <h2 className="text-xl font-bold text-primary-dark">
                 Secciones de la app
               </h2>
 
@@ -165,7 +165,7 @@ export default function ConfiguracionPage() {
                   >
                     <div>
                       <div className="flex items-center gap-3">
-                        <h3 className="font-bold text-[#18392e]">
+                        <h3 className="font-bold text-primary-dark">
                           {section.title}
                         </h3>
 
@@ -191,7 +191,7 @@ export default function ConfiguracionPage() {
                       onClick={() => toggle(section.key)}
                       className={`relative h-8 w-14 shrink-0 rounded-full transition ${
                         active
-                          ? 'bg-[#18543e]'
+                          ? 'bg-primary'
                           : 'bg-gray-300'
                       } disabled:opacity-50`}
                       aria-label={`${active ? 'Desactivar' : 'Activar'} ${section.title}`}
@@ -212,7 +212,7 @@ export default function ConfiguracionPage() {
 
           <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm md:p-8">
             <div>
-              <h2 className="text-xl font-bold text-[#18392e]">
+              <h2 className="text-xl font-bold text-primary-dark">
                 Sistema
               </h2>
 
@@ -225,7 +225,7 @@ export default function ConfiguracionPage() {
               <div className="flex flex-col gap-4 rounded-2xl border border-amber-100 bg-amber-50/50 p-5 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-[#18392e]">
+                    <h3 className="font-bold text-primary-dark">
                       Modo mantenimiento
                     </h3>
 
@@ -268,7 +268,7 @@ export default function ConfiguracionPage() {
               BACKEND
             </p>
 
-            <h2 className="mt-2 font-bold text-[#18392e]">
+            <h2 className="mt-2 font-bold text-primary-dark">
               Supabase conectado
             </h2>
 

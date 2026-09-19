@@ -178,7 +178,7 @@ export default function AvisosPage() {
         
         <section className="mt-8 rounded-3xl bg-white p-6 shadow-sm md:p-8">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#18392e]">
+            <h2 className="text-xl font-bold text-primary-dark">
               {editingId ? 'Editar aviso' : 'Nuevo aviso'}
             </h2>
 
@@ -209,7 +209,7 @@ export default function AvisosPage() {
                     title: e.target.value,
                   })
                 }
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#24634c]"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-primary"
               />
             </div>
 
@@ -227,7 +227,7 @@ export default function AvisosPage() {
                     message: e.target.value,
                   })
                 }
-                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#24634c]"
+                className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-primary"
               />
             </div>
 
@@ -314,7 +314,7 @@ export default function AvisosPage() {
               <button
                 type="submit"
                 disabled={saving}
-                className="rounded-xl bg-[#18543e] px-5 py-3 font-bold text-white disabled:opacity-50"
+                className="rounded-xl bg-primary px-5 py-3 font-bold text-white disabled:opacity-50"
               >
                 {saving
                   ? 'Guardando…'
@@ -328,13 +328,13 @@ export default function AvisosPage() {
 
         <section className="mt-8">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-[#18392e]">
+            <h2 className="text-xl font-bold text-primary-dark">
               Avisos existentes
             </h2>
 
             <button
               onClick={loadAnnouncements}
-              className="text-sm font-semibold text-[#18543e]"
+              className="text-sm font-semibold text-primary"
             >
               Actualizar
             </button>
@@ -361,7 +361,7 @@ export default function AvisosPage() {
                 <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <h3 className="text-lg font-bold text-[#18392e]">
+                      <h3 className="text-lg font-bold text-primary-dark">
                         {item.title}
                       </h3>
 
@@ -399,7 +399,7 @@ export default function AvisosPage() {
 
                     <button
                       onClick={() => editItem(item)}
-                      className="rounded-lg bg-[#edf5f1] px-3 py-2 text-xs font-bold text-[#18543e]"
+                      className="rounded-lg bg-primary-light px-3 py-2 text-xs font-bold text-primary"
                     >
                       Editar
                     </button>
