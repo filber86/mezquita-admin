@@ -298,12 +298,20 @@ export default function DestacadosPage() {
                   external_id: e.target.value,
                 })
               }
-              placeholder="Ej. ID del vídeo, evento o noticia"
+              placeholder={
+                form.type === 'event'
+                  ? 'UID del evento en el .ics'
+                  : form.type === 'youtube'
+                    ? 'ID del vídeo de YouTube'
+                    : 'ID del post de WordPress'
+              }
               className="w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#24634c]"
             />
 
             <p className="mt-2 text-xs text-gray-400">
-              Es el identificador que usa la fuente original.
+              {form.type === 'event'
+                ? 'Usa el UID del evento tal como aparece en el calendario .ics, no un ID generado por la app.'
+                : 'Es el identificador que usa la fuente original.'}
             </p>
           </div>
 

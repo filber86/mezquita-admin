@@ -1,10 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest, NextResponse } from 'next/server';
 
+type PushTarget = {
+  kind: 'home' | 'evento' | 'noticia' | 'jutbah' | 'video' | 'zakat' | 'aviso';
+  id?: string;
+};
+
 type PushRequest = {
   title?: string;
   message?: string;
+  target?: PushTarget;
 };
+
+const targetsWithId: PushTarget['kind'][] = ['evento', 'noticia', 'jutbah', 'video', 'aviso'];
+
+function normalizeTarget(target: PushTarget | undefined): PushTarget {
+  if (!target || !target.kind) return { kind: 'home' };
+  if (targetsWithId.includes(target.kind) && !target.id?.trim()) return { kind: 'home' };
+  return targetsWithId.includes(target.kind) ? { kind: target.kind, id: target.id!.trim() } : { kind: target.kind };
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -100,14 +114,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const data = normalizeTarget(body.target);
+
     const messages = tokens.map((token) => ({
       to: token,
       sound: 'default',
       title,
       body: message,
-      data: {
-        screen: 'home',
-      },
+      data,
     }));
 
     const expoResponse = await fetch(
