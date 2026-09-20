@@ -128,10 +128,6 @@ export default function CalendarioPage() {
     >
       <section className="mb-8 rounded-3xl bg-white p-6 shadow-sm md:p-8">
         <h2 className="text-xl font-bold text-primary-dark">Calendario de origen</h2>
-        <p className="mt-2 text-sm text-gray-500">
-          Enlace .ics que se combina con la Recitación del Wird. Cambiarlo aquí no
-          requiere ningún despliegue.
-        </p>
 
         <form onSubmit={saveSourceIcs} className="mt-5 flex flex-col gap-3 sm:flex-row">
           <input
