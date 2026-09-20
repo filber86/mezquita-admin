@@ -56,9 +56,15 @@ export default function CalendarioPage() {
   async function saveSourceIcs(event: FormEvent) {
     event.preventDefault();
 
-    setSavingSource(true);
     setSourceError('');
     setSourceMessage('');
+
+    if (/mezquita-calendar[a-z0-9-]*\.vercel\.app/i.test(sourceIcs)) {
+      setSourceError('Esta es la dirección del propio calendario combinado — pon aquí el ICS original (p. ej. el de Outlook), no esta URL.');
+      return;
+    }
+
+    setSavingSource(true);
 
     const { error } = await supabase
       .from('app_config')

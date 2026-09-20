@@ -11,6 +11,8 @@ type ParsedCalendarEvent = {
   location?: string;
   start: Date;
   end?: Date;
+  rrule?: { between(after: Date, before: Date, inclusive?: boolean): Date[] };
+  exdate?: Record<string, Date>;
 };
 
 function isCalendarEvent(
@@ -26,6 +28,28 @@ function isCalendarEvent(
     candidate.type === 'VEVENT' &&
     candidate.start instanceof Date
   );
+}
+
+// Para un evento con RRULE, node-ical solo rellena start/end con la primera
+// aparición histórica — hay que pedirle a la propia rrule la próxima
+// ocurrencia futura, si no, un evento semanal que empezó hace meses (p. ej.
+// la Yumu'ah) se descarta por "pasado" aunque siga repitiéndose cada semana.
+function nextOccurrence(event: ParsedCalendarEvent, from: Date): { start: Date; end?: Date } | null {
+  if (!event.rrule) {
+    return { start: event.start, end: event.end };
+  }
+
+  const duration = event.end ? event.end.getTime() - event.start.getTime() : 0;
+  const horizon = new Date(from.getTime() + 365 * 24 * 60 * 60 * 1000);
+  const excluded = new Set(Object.keys(event.exdate ?? {}));
+
+  const occurrence = event.rrule
+    .between(from, horizon, true)
+    .find((date) => !excluded.has(date.toISOString().slice(0, 10)));
+
+  if (!occurrence) return null;
+
+  return { start: occurrence, end: duration ? new Date(occurrence.getTime() + duration) : undefined };
 }
 
 export async function GET() {
@@ -65,38 +89,39 @@ export async function GET() {
 
     const events = components
       .filter(isCalendarEvent)
-      .map((event) => ({
-        id:
-          typeof event.uid === 'string'
-            ? event.uid
-            : `${event.start.toISOString()}-${event.summary ?? ''}`,
+      .flatMap((event) => {
+        const occurrence = nextOccurrence(event, now);
+        if (!occurrence) return [];
+        if ((occurrence.end ?? occurrence.start) < now) return [];
 
-        title:
-          typeof event.summary === 'string'
-            ? event.summary
-            : 'Evento',
+        return [
+          {
+            id:
+              typeof event.uid === 'string'
+                ? `${event.uid}-${occurrence.start.toISOString()}`
+                : `${occurrence.start.toISOString()}-${event.summary ?? ''}`,
 
-        description:
-          typeof event.description === 'string'
-            ? event.description
-            : '',
+            title:
+              typeof event.summary === 'string'
+                ? event.summary
+                : 'Evento',
 
-        location:
-          typeof event.location === 'string'
-            ? event.location
-            : '',
+            description:
+              typeof event.description === 'string'
+                ? event.description
+                : '',
 
-        start: event.start.toISOString(),
+            location:
+              typeof event.location === 'string'
+                ? event.location
+                : '',
 
-        end:
-          event.end instanceof Date
-            ? event.end.toISOString()
-            : null,
-      }))
-      .filter(
-        (event) =>
-          new Date(event.end ?? event.start) >= now
-      )
+            start: occurrence.start.toISOString(),
+
+            end: occurrence.end ? occurrence.end.toISOString() : null,
+          },
+        ];
+      })
       .sort(
         (a, b) =>
           new Date(a.start).getTime() -
