@@ -31,25 +31,24 @@ function isCalendarEvent(
 }
 
 // Para un evento con RRULE, node-ical solo rellena start/end con la primera
-// aparición histórica — hay que pedirle a la propia rrule la próxima
-// ocurrencia futura, si no, un evento semanal que empezó hace meses (p. ej.
-// la Yumu'ah) se descarta por "pasado" aunque siga repitiéndose cada semana.
-function nextOccurrence(event: ParsedCalendarEvent, from: Date): { start: Date; end?: Date } | null {
+// aparición histórica — hay que pedirle a la propia rrule todas las
+// ocurrencias futuras dentro del horizonte, si no, un evento semanal que
+// empezó hace meses (p. ej. las clases de Corán o la Yumu'ah) se descarta por
+// "pasado", o solo se ve una vez en vez de cada semana.
+function occurrences(event: ParsedCalendarEvent, from: Date, to: Date): { start: Date; end?: Date }[] {
   if (!event.rrule) {
-    return { start: event.start, end: event.end };
+    if ((event.end ?? event.start) < from) return [];
+    if (event.start > to) return [];
+    return [{ start: event.start, end: event.end }];
   }
 
   const duration = event.end ? event.end.getTime() - event.start.getTime() : 0;
-  const horizon = new Date(from.getTime() + 365 * 24 * 60 * 60 * 1000);
   const excluded = new Set(Object.keys(event.exdate ?? {}));
 
-  const occurrence = event.rrule
-    .between(from, horizon, true)
-    .find((date) => !excluded.has(date.toISOString().slice(0, 10)));
-
-  if (!occurrence) return null;
-
-  return { start: occurrence, end: duration ? new Date(occurrence.getTime() + duration) : undefined };
+  return event.rrule
+    .between(from, to, true)
+    .filter((date) => !excluded.has(date.toISOString().slice(0, 10)))
+    .map((date) => ({ start: date, end: duration ? new Date(date.getTime() + duration) : undefined }));
 }
 
 export async function GET() {
@@ -86,42 +85,37 @@ export async function GET() {
       Object.values(parsed);
 
     const now = new Date();
+    const horizon = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
 
     const events = components
       .filter(isCalendarEvent)
-      .flatMap((event) => {
-        const occurrence = nextOccurrence(event, now);
-        if (!occurrence) return [];
-        if ((occurrence.end ?? occurrence.start) < now) return [];
+      .flatMap((event) =>
+        occurrences(event, now, horizon).map((occurrence) => ({
+          id:
+            typeof event.uid === 'string'
+              ? `${event.uid}-${occurrence.start.toISOString()}`
+              : `${occurrence.start.toISOString()}-${event.summary ?? ''}`,
 
-        return [
-          {
-            id:
-              typeof event.uid === 'string'
-                ? `${event.uid}-${occurrence.start.toISOString()}`
-                : `${occurrence.start.toISOString()}-${event.summary ?? ''}`,
+          title:
+            typeof event.summary === 'string'
+              ? event.summary
+              : 'Evento',
 
-            title:
-              typeof event.summary === 'string'
-                ? event.summary
-                : 'Evento',
+          description:
+            typeof event.description === 'string'
+              ? event.description
+              : '',
 
-            description:
-              typeof event.description === 'string'
-                ? event.description
-                : '',
+          location:
+            typeof event.location === 'string'
+              ? event.location
+              : '',
 
-            location:
-              typeof event.location === 'string'
-                ? event.location
-                : '',
+          start: occurrence.start.toISOString(),
 
-            start: occurrence.start.toISOString(),
-
-            end: occurrence.end ? occurrence.end.toISOString() : null,
-          },
-        ];
-      })
+          end: occurrence.end ? occurrence.end.toISOString() : null,
+        }))
+      )
       .sort(
         (a, b) =>
           new Date(a.start).getTime() -
