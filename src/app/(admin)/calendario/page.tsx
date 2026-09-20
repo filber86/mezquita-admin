@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 import { AdminShell } from '@/components/AdminShell';
+import { supabase } from '@/lib/supabase';
 
 type CalendarEvent = {
   id: string;
@@ -27,6 +28,55 @@ export default function CalendarioPage() {
 
   const [loading, setLoading] =
     useState(true);
+
+  const [sourceIcs, setSourceIcs] = useState('');
+  const [sourceLoading, setSourceLoading] = useState(true);
+  const [savingSource, setSavingSource] = useState(false);
+  const [sourceMessage, setSourceMessage] = useState('');
+  const [sourceError, setSourceError] = useState('');
+
+  async function loadSourceIcs() {
+    setSourceLoading(true);
+
+    const { data, error } = await supabase
+      .from('app_config')
+      .select('value')
+      .eq('key', 'calendar_source_ics')
+      .maybeSingle();
+
+    if (error) {
+      setSourceError(error.message);
+    } else if (typeof data?.value === 'string') {
+      setSourceIcs(data.value);
+    }
+
+    setSourceLoading(false);
+  }
+
+  async function saveSourceIcs(event: FormEvent) {
+    event.preventDefault();
+
+    setSavingSource(true);
+    setSourceError('');
+    setSourceMessage('');
+
+    const { error } = await supabase
+      .from('app_config')
+      .update({ value: sourceIcs.trim(), updated_at: new Date().toISOString() })
+      .eq('key', 'calendar_source_ics');
+
+    if (error) {
+      setSourceError(error.message);
+    } else {
+      setSourceMessage('Guardado. El nuevo calendario se aplica en la próxima actualización (hasta 30 minutos).');
+    }
+
+    setSavingSource(false);
+  }
+
+  useEffect(() => {
+    loadSourceIcs();
+  }, []);
 
   async function loadCalendar() {
     setLoading(true);
@@ -70,6 +120,35 @@ export default function CalendarioPage() {
       title="Calendario"
       description="Consulta los eventos publicados en el calendario oficial."
     >
+      <section className="mb-8 rounded-3xl bg-white p-6 shadow-sm md:p-8">
+        <h2 className="text-xl font-bold text-primary-dark">Calendario de origen</h2>
+        <p className="mt-2 text-sm text-gray-500">
+          Enlace .ics que se combina con la Recitación del Wird. Cambiarlo aquí no
+          requiere ningún despliegue.
+        </p>
+
+        <form onSubmit={saveSourceIcs} className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <input
+            value={sourceIcs}
+            onChange={(event) => setSourceIcs(event.target.value)}
+            disabled={sourceLoading}
+            placeholder="https://.../calendar.ics"
+            className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-primary"
+          />
+
+          <button
+            type="submit"
+            disabled={savingSource || sourceLoading || !sourceIcs.trim()}
+            className="rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
+          >
+            {savingSource ? 'Guardando…' : 'Guardar'}
+          </button>
+        </form>
+
+        {sourceMessage ? <p className="mt-3 text-sm font-semibold text-emerald-700">{sourceMessage}</p> : null}
+        {sourceError ? <p className="mt-3 text-sm text-red-600">{sourceError}</p> : null}
+      </section>
+
       <section className="grid gap-4 md:grid-cols-3">
         <div className="rounded-3xl bg-white p-6 shadow-sm">
           <p className="text-sm font-semibold text-gray-500">
