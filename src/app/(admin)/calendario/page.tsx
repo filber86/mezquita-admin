@@ -43,7 +43,7 @@ export default function CalendarioPage() {
     const { data, error } = await supabase
       .from('app_config')
       .select('value')
-      .eq('key', 'calendar_source_ics')
+      .eq('key', 'admin_calendar_ics')
       .maybeSingle();
 
     if (error) {
@@ -60,23 +60,18 @@ export default function CalendarioPage() {
 
     setSourceError('');
     setSourceMessage('');
-
-    if (/mezquita-calendar[a-z0-9-]*\.vercel\.app/i.test(sourceIcs)) {
-      setSourceError('Esta es la dirección del propio calendario combinado — pon aquí el ICS original (p. ej. el de Outlook), no esta URL.');
-      return;
-    }
-
     setSavingSource(true);
 
     const { error } = await supabase
       .from('app_config')
       .update({ value: sourceIcs.trim(), updated_at: new Date().toISOString() })
-      .eq('key', 'calendar_source_ics');
+      .eq('key', 'admin_calendar_ics');
 
     if (error) {
       setSourceError(error.message);
     } else {
-      setSourceMessage('Guardado. El nuevo calendario se aplica en la próxima actualización (hasta 30 minutos).');
+      setSourceMessage('Guardado.');
+      loadCalendar();
     }
 
     setSavingSource(false);
@@ -129,10 +124,11 @@ export default function CalendarioPage() {
       description="Consulta los eventos publicados en el calendario oficial."
     >
       <section className="mb-8 rounded-3xl bg-white p-6 shadow-sm md:p-8">
-        <h2 className="text-xl font-bold text-primary-dark">Calendario real (Outlook)</h2>
+        <h2 className="text-xl font-bold text-primary-dark">Fuente</h2>
         <p className="mt-2 text-sm text-gray-500">
-          El ICS original de la mezquita. Se combina con el Wird para generar el
-          calendario que usan la app y este panel.
+          ICS del que este panel obtiene los eventos que se muestran abajo. Por
+          defecto es el calendario combinado (Outlook + Wird), pero puede ser
+          cualquier otro .ics.
         </p>
 
         <form onSubmit={saveSourceIcs} className="mt-5 flex flex-col gap-3 sm:flex-row">
@@ -155,19 +151,6 @@ export default function CalendarioPage() {
 
         {sourceMessage ? <p className="mt-3 text-sm font-semibold text-emerald-700">{sourceMessage}</p> : null}
         {sourceError ? <p className="mt-3 text-sm text-red-600">{sourceError}</p> : null}
-
-        <div className="mt-6 border-t border-gray-100 pt-5">
-          <p className="text-sm font-semibold text-gray-500">
-            Calendario combinado (Outlook + Wird)
-          </p>
-          <p className="mt-1 text-sm text-gray-500">
-            Esta es la dirección que ya usan la app y este panel — no hace falta
-            configurarla en ningún sitio, se genera sola a partir del calendario real de arriba.
-          </p>
-          <code className="mt-3 block break-all rounded-lg bg-primary-light px-4 py-3 text-sm text-primary-dark">
-            https://mezquita-calendar.vercel.app/api/calendar
-          </code>
-        </div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">

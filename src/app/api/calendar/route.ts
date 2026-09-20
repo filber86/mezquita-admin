@@ -1,7 +1,26 @@
 import { NextResponse } from 'next/server';
 import ical from 'node-ical';
 
+import { supabase } from '@/lib/supabase';
+
 export const dynamic = 'force-dynamic';
+
+const DEFAULT_CALENDAR_ICS = 'https://mezquita-calendar.vercel.app/api/calendar';
+
+// La fuente que muestra este panel se guarda en Supabase (admin_calendar_ics)
+// en vez de en una variable de entorno, para poder cambiarla desde Calendario
+// sin redeploy. Si no hay valor configurado, usa el calendario combinado.
+async function getDisplayIcs() {
+  const { data } = await supabase
+    .from('app_config')
+    .select('value')
+    .eq('key', 'admin_calendar_ics')
+    .maybeSingle();
+
+  return typeof data?.value === 'string' && data.value.trim()
+    ? data.value.trim()
+    : process.env.CALENDAR_ICS_URL || DEFAULT_CALENDAR_ICS;
+}
 
 type ParsedCalendarEvent = {
   type: 'VEVENT';
@@ -58,17 +77,7 @@ export async function GET(request: Request) {
     const requestedLimit = Number(new URL(request.url).searchParams.get('limit'));
     const limit = ALLOWED_LIMITS.includes(requestedLimit) ? requestedLimit : 30;
 
-    const calendarUrl = process.env.CALENDAR_ICS_URL;
-
-    if (!calendarUrl) {
-      return NextResponse.json(
-        {
-          connected: false,
-          error: 'CALENDAR_ICS_URL no está configurada',
-        },
-        { status: 500 }
-      );
-    }
+    const calendarUrl = await getDisplayIcs();
 
     const response = await fetch(calendarUrl, {
       cache: 'no-store',

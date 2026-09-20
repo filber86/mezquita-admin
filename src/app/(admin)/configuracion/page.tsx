@@ -1,9 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 
 import { AdminShell } from '@/components/AdminShell';
 import { supabase } from '@/lib/supabase';
+
+const COMBINED_CALENDAR_URL = 'https://mezquita-calendar.vercel.app/api/calendar';
 
 type ConfigItem = {
   key: string;
@@ -52,9 +54,47 @@ export default function ConfiguracionPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
+  const [sourceIcs, setSourceIcs] = useState('');
+  const [savingSource, setSavingSource] = useState(false);
+  const [sourceMessage, setSourceMessage] = useState('');
+  const [sourceError, setSourceError] = useState('');
+
   useEffect(() => {
     loadConfig();
   }, []);
+
+  useEffect(() => {
+    if (typeof config.calendar_source_ics?.value === 'string') {
+      setSourceIcs(config.calendar_source_ics.value);
+    }
+  }, [config.calendar_source_ics]);
+
+  async function saveSourceIcs(event: FormEvent) {
+    event.preventDefault();
+
+    setSourceError('');
+    setSourceMessage('');
+
+    if (/mezquita-calendar[a-z0-9-]*\.vercel\.app/i.test(sourceIcs)) {
+      setSourceError('Esta es la dirección del propio calendario combinado — pon aquí el ICS original (p. ej. el de Outlook), no esta URL.');
+      return;
+    }
+
+    setSavingSource(true);
+
+    const { error } = await supabase
+      .from('app_config')
+      .update({ value: sourceIcs.trim(), updated_at: new Date().toISOString() })
+      .eq('key', 'calendar_source_ics');
+
+    if (error) {
+      setSourceError(error.message);
+    } else {
+      setSourceMessage('Guardado. El nuevo calendario se aplica en la próxima actualización (hasta 30 minutos).');
+    }
+
+    setSavingSource(false);
+  }
 
   async function loadConfig() {
     setLoading(true);
@@ -207,6 +247,53 @@ export default function ConfiguracionPage() {
                   </div>
                 );
               })}
+            </div>
+          </section>
+
+          <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm md:p-8">
+            <div>
+              <h2 className="text-xl font-bold text-primary-dark">
+                Calendario
+              </h2>
+
+              <p className="mt-2 text-sm text-gray-500">
+                El ICS real de la mezquita (Outlook u otro proveedor). Se
+                combina con el Wird para generar el calendario que usan la
+                app y el panel.
+              </p>
+            </div>
+
+            <form onSubmit={saveSourceIcs} className="mt-5 flex flex-col gap-3 sm:flex-row">
+              <input
+                value={sourceIcs}
+                onChange={(event) => setSourceIcs(event.target.value)}
+                placeholder="https://.../calendar.ics"
+                className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-primary"
+              />
+
+              <button
+                type="submit"
+                disabled={savingSource || !sourceIcs.trim()}
+                className="rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
+              >
+                {savingSource ? 'Guardando…' : 'Guardar'}
+              </button>
+            </form>
+
+            {sourceMessage ? <p className="mt-3 text-sm font-semibold text-emerald-700">{sourceMessage}</p> : null}
+            {sourceError ? <p className="mt-3 text-sm text-red-600">{sourceError}</p> : null}
+
+            <div className="mt-6 border-t border-gray-100 pt-5">
+              <p className="text-sm font-semibold text-gray-500">
+                Calendario combinado (Outlook + Wird)
+              </p>
+              <p className="mt-1 text-sm text-gray-500">
+                Dirección que ya usan la app y el panel — se genera sola a partir
+                del calendario real de arriba, no hace falta configurarla.
+              </p>
+              <code className="mt-3 block break-all rounded-lg bg-primary-light px-4 py-3 text-sm text-primary-dark">
+                {COMBINED_CALENDAR_URL}
+              </code>
             </div>
           </section>
 
