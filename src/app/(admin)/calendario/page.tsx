@@ -29,6 +29,8 @@ export default function CalendarioPage() {
   const [loading, setLoading] =
     useState(true);
 
+  const [limit, setLimit] = useState(30);
+
   const [sourceIcs, setSourceIcs] = useState('');
   const [sourceLoading, setSourceLoading] = useState(true);
   const [savingSource, setSavingSource] = useState(false);
@@ -88,7 +90,7 @@ export default function CalendarioPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/calendar', {
+      const response = await fetch(`/api/calendar?limit=${limit}`, {
         cache: 'no-store',
       });
 
@@ -108,7 +110,7 @@ export default function CalendarioPage() {
 
   useEffect(() => {
     loadCalendar();
-  }, []);
+  }, [limit]);
 
   function formatDate(value: string) {
     return new Intl.DateTimeFormat('es-ES', {
@@ -208,15 +210,32 @@ export default function CalendarioPage() {
             </p>
           </div>
 
-          <button
-            onClick={loadCalendar}
-            disabled={loading}
-            className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
-          >
-            {loading
-              ? 'Actualizando…'
-              : 'Actualizar'}
-          </button>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm font-semibold text-gray-500">
+              Mostrar
+              <select
+                value={limit}
+                onChange={(event) => setLimit(Number(event.target.value))}
+                disabled={loading}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary"
+              >
+                <option value={10}>10 eventos</option>
+                <option value={20}>20 eventos</option>
+                <option value={30}>30 eventos</option>
+                <option value={50}>50 eventos</option>
+              </select>
+            </label>
+
+            <button
+              onClick={loadCalendar}
+              disabled={loading}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+            >
+              {loading
+                ? 'Actualizando…'
+                : 'Actualizar'}
+            </button>
+          </div>
         </div>
 
         {!loading && !data?.connected ? (

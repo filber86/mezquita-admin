@@ -51,8 +51,13 @@ function occurrences(event: ParsedCalendarEvent, from: Date, to: Date): { start:
     .map((date) => ({ start: date, end: duration ? new Date(date.getTime() + duration) : undefined }));
 }
 
-export async function GET() {
+const ALLOWED_LIMITS = [10, 20, 30, 50];
+
+export async function GET(request: Request) {
   try {
+    const requestedLimit = Number(new URL(request.url).searchParams.get('limit'));
+    const limit = ALLOWED_LIMITS.includes(requestedLimit) ? requestedLimit : 30;
+
     const calendarUrl = process.env.CALENDAR_ICS_URL;
 
     if (!calendarUrl) {
@@ -85,7 +90,7 @@ export async function GET() {
       Object.values(parsed);
 
     const now = new Date();
-    const horizon = new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000);
+    const horizon = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
 
     const events = components
       .filter(isCalendarEvent)
@@ -121,7 +126,7 @@ export async function GET() {
           new Date(a.start).getTime() -
           new Date(b.start).getTime()
       )
-      .slice(0, 30);
+      .slice(0, limit);
 
     return NextResponse.json({
       connected: true,
