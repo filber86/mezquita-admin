@@ -9,6 +9,7 @@ const navigation = [
   { href: '/avisos', label: 'Avisos', icon: '●' },
   { href: '/calendario', label: 'Calendario', icon: '▣' },
   { href: '/notificaciones', label: 'Notificaciones', icon: '◆' },
+  { href: '/donaciones', label: 'Donaciones', icon: '♥' },
   { href: '/configuracion', label: 'Configuración', icon: '⚙' },
   { href: '/destacados', label: 'Destacados', icon: '★' },
 ];
