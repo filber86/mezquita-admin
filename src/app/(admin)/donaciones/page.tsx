@@ -51,6 +51,7 @@ export default function DonacionesPage() {
   const [error, setError] = useState('');
   const [year, setYear] = useState<number | 'all'>('all');
   const [month, setMonth] = useState<number | 'all'>('all');
+  const [purpose, setPurpose] = useState<Payment['purpose'] | 'all'>('all');
 
   useEffect(() => {
     load();
@@ -85,9 +86,10 @@ export default function DonacionesPage() {
       const date = new Date(p.created_at);
       if (year !== 'all' && date.getFullYear() !== year) return false;
       if (month !== 'all' && date.getMonth() !== month) return false;
+      if (purpose !== 'all' && p.purpose !== purpose) return false;
       return true;
     });
-  }, [payments, year, month]);
+  }, [payments, year, month, purpose]);
 
   const totals = useMemo(() => {
     const succeeded = filtered.filter((p) => p.status === 'succeeded');
@@ -99,6 +101,7 @@ export default function DonacionesPage() {
 
   function exportCsv() {
     const label = [
+      purpose === 'all' ? 'todos' : purpose === 'zakat' ? 'zakat' : 'donaciones',
       year === 'all' ? 'todos' : year,
       month === 'all' ? '' : MONTHS[month].toLowerCase(),
     ].filter(Boolean).join('-');
@@ -133,6 +136,16 @@ export default function DonacionesPage() {
               <option key={m} value={index}>{m}</option>
             ))}
           </select>
+
+          <select
+            value={purpose}
+            onChange={(event) => setPurpose(event.target.value as Payment['purpose'] | 'all')}
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none focus:border-primary"
+          >
+            <option value="all">Zakat y Donaciones</option>
+            <option value="zakat">Solo Zakat</option>
+            <option value="donation">Solo Donaciones</option>
+          </select>
         </div>
 
         <button
@@ -151,15 +164,19 @@ export default function DonacionesPage() {
       ) : null}
 
       <section className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold text-gray-500">Total Zakat</p>
-          <p className="mt-3 text-2xl font-bold text-primary-dark">{loading ? '—' : money(totals.zakat)}</p>
-        </div>
+        {purpose !== 'donation' ? (
+          <div className="rounded-3xl bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold text-gray-500">Total Zakat</p>
+            <p className="mt-3 text-2xl font-bold text-primary-dark">{loading ? '—' : money(totals.zakat)}</p>
+          </div>
+        ) : null}
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm">
-          <p className="text-sm font-semibold text-gray-500">Total Donaciones</p>
-          <p className="mt-3 text-2xl font-bold text-primary-dark">{loading ? '—' : money(totals.donation)}</p>
-        </div>
+        {purpose !== 'zakat' ? (
+          <div className="rounded-3xl bg-white p-6 shadow-sm">
+            <p className="text-sm font-semibold text-gray-500">Total Donaciones</p>
+            <p className="mt-3 text-2xl font-bold text-primary-dark">{loading ? '—' : money(totals.donation)}</p>
+          </div>
+        ) : null}
 
         <div className="rounded-3xl bg-white p-6 shadow-sm">
           <p className="text-sm font-semibold text-gray-500">Pagos fallidos</p>
