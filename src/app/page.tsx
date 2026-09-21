@@ -390,6 +390,11 @@ export default function Home() {
               />
 
               <StatusRow
+                name="Zakat"
+                enabled={enabled('zakat_enabled')}
+              />
+
+              <StatusRow
                 name="Qibla"
                 enabled={enabled('qibla_enabled')}
               />

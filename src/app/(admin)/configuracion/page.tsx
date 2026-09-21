@@ -33,7 +33,12 @@ const sections = [
   {
     key: 'donations_enabled',
     title: 'Donativos',
-    description: 'Mostrar las opciones de donativos y Zakat.',
+    description: 'Mostrar la donación general (sadaqa) en la app.',
+  },
+  {
+    key: 'zakat_enabled',
+    title: 'Zakat',
+    description: 'Mostrar la calculadora y el pago de Zakat. Actívalo solo cuando un experto haya verificado los cálculos.',
   },
   {
     key: 'qibla_enabled',
@@ -134,11 +139,10 @@ export default function ConfiguracionPage() {
 
     const { error } = await supabase
       .from('app_config')
-      .update({
-        value: newValue,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('key', key);
+      .upsert(
+        { key, value: newValue, updated_at: new Date().toISOString() },
+        { onConflict: 'key' }
+      );
 
     if (error) {
       setError(error.message);
