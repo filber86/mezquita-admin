@@ -78,7 +78,16 @@ export default function CalendarioPage() {
   }
 
   useEffect(() => {
-    loadSourceIcs();
+    let cancelled = false;
+
+    (async () => {
+      if (cancelled) return;
+      await loadSourceIcs();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function loadCalendar() {

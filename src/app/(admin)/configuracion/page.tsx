@@ -64,14 +64,49 @@ export default function ConfiguracionPage() {
   const [sourceMessage, setSourceMessage] = useState('');
   const [sourceError, setSourceError] = useState('');
 
+  async function loadConfig() {
+    setLoading(true);
+    setError('');
+
+    const { data, error } = await supabase
+      .from('app_config')
+      .select('*')
+      .order('key');
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    const mapped = Object.fromEntries(
+      (data ?? []).map((item) => [item.key, item])
+    );
+
+    setConfig(mapped);
+    setLoading(false);
+  }
+
   useEffect(() => {
-    loadConfig();
+    let cancelled = false;
+
+    (async () => {
+      if (cancelled) return;
+      await loadConfig();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
-    if (typeof config.calendar_source_ics?.value === 'string') {
-      setSourceIcs(config.calendar_source_ics.value);
-    }
+    if (typeof config.calendar_source_ics?.value !== 'string') return;
+
+    const value = config.calendar_source_ics.value;
+    // Se inicializa el input editable con el valor guardado en cuanto llega
+    // de Supabase; a partir de ahí el usuario lo edita libremente.
+    queueMicrotask(() => setSourceIcs(value));
   }, [config.calendar_source_ics]);
 
   async function saveSourceIcs(event: FormEvent) {
@@ -99,29 +134,6 @@ export default function ConfiguracionPage() {
     }
 
     setSavingSource(false);
-  }
-
-  async function loadConfig() {
-    setLoading(true);
-    setError('');
-
-    const { data, error } = await supabase
-      .from('app_config')
-      .select('*')
-      .order('key');
-
-    if (error) {
-      setError(error.message);
-      setLoading(false);
-      return;
-    }
-
-    const mapped = Object.fromEntries(
-      (data ?? []).map((item) => [item.key, item])
-    );
-
-    setConfig(mapped);
-    setLoading(false);
   }
 
   function enabled(key: string) {

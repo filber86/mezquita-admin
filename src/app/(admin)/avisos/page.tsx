@@ -52,7 +52,16 @@ export default function AvisosPage() {
   }
 
   useEffect(() => {
-    loadAnnouncements();
+    let cancelled = false;
+
+    (async () => {
+      if (cancelled) return;
+      await loadAnnouncements();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   function resetForm() {

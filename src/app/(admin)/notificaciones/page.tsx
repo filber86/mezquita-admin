@@ -60,13 +60,17 @@ export default function NotificationsPage() {
   }
 
   useEffect(() => {
-    loadDeviceCount();
-    loadAvisos();
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
-    setTargetId('');
-  }, [targetKind]);
+    (async () => {
+      if (cancelled) return;
+      await Promise.all([loadDeviceCount(), loadAvisos()]);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -190,7 +194,10 @@ return (
 
           <select
             value={targetKind}
-            onChange={(event) => setTargetKind(event.target.value as TargetKind)}
+            onChange={(event) => {
+              setTargetKind(event.target.value as TargetKind);
+              setTargetId('');
+            }}
             className="mt-2 w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-gray-500"
           >
             {TARGET_OPTIONS.map((option) => (

@@ -53,10 +53,6 @@ export default function DonacionesPage() {
   const [month, setMonth] = useState<number | 'all'>('all');
   const [purpose, setPurpose] = useState<Payment['purpose'] | 'all'>('all');
 
-  useEffect(() => {
-    load();
-  }, []);
-
   async function load() {
     setLoading(true);
     setError('');
@@ -74,6 +70,19 @@ export default function DonacionesPage() {
 
     setLoading(false);
   }
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      if (cancelled) return;
+      await load();
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const years = useMemo(() => {
     const set = new Set(payments.map((p) => new Date(p.created_at).getFullYear()));
