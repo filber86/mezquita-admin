@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 
 import { AdminShell } from '@/components/AdminShell';
+import { HijriCalendarForm } from '@/components/HijriCalendarForm';
 import { MosqueInfoForm } from '@/components/MosqueInfoForm';
 import { supabase } from '@/lib/supabase';
 
@@ -366,6 +367,13 @@ export default function ConfiguracionPage() {
               </div>
             </div>
           </section>
+
+          <HijriCalendarForm
+            value={config.hijri_calendar?.value}
+            onSaved={(entries) =>
+              setConfig((current) => ({ ...current, hijri_calendar: { ...current.hijri_calendar, key: 'hijri_calendar', value: { months: entries } } }))
+            }
+          />
 
           <MosqueInfoForm
             value={config.mosque_info?.value}
