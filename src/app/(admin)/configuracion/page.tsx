@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 
 import { AdminShell } from '@/components/AdminShell';
+import { MosqueInfoForm } from '@/components/MosqueInfoForm';
 import { supabase } from '@/lib/supabase';
 
 const COMBINED_CALENDAR_URL = 'https://mezquita-calendar.vercel.app/api/calendar';
@@ -365,6 +366,13 @@ export default function ConfiguracionPage() {
               </div>
             </div>
           </section>
+
+          <MosqueInfoForm
+            value={config.mosque_info?.value}
+            onSaved={(info) =>
+              setConfig((current) => ({ ...current, mosque_info: { ...current.mosque_info, key: 'mosque_info', value: info } }))
+            }
+          />
 
           <section className="mt-6 rounded-3xl border border-[#d8b66f]/30 bg-[#fffdf8] p-6">
             <p className="text-xs font-black tracking-[0.18em] text-[#b28b45]">
