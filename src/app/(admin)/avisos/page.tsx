@@ -2,6 +2,7 @@
 
 import { AdminShell } from '@/components/AdminShell';
 import { FormEvent, useEffect, useState } from 'react';
+import { isoToMadridInput, madridInputToIso } from '@/lib/madridTime';
 import { supabase } from '@/lib/supabase';
 
 type Announcement = {
@@ -78,12 +79,8 @@ export default function AvisosPage() {
       message: item.message,
       active: item.active,
       priority: item.priority,
-      starts_at: item.starts_at
-        ? item.starts_at.slice(0, 16)
-        : '',
-      ends_at: item.ends_at
-        ? item.ends_at.slice(0, 16)
-        : '',
+      starts_at: item.starts_at ? isoToMadridInput(item.starts_at) : '',
+      ends_at: item.ends_at ? isoToMadridInput(item.ends_at) : '',
     });
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -99,12 +96,8 @@ export default function AvisosPage() {
       message: form.message.trim(),
       active: form.active,
       priority: Number(form.priority) || 0,
-      starts_at: form.starts_at
-        ? new Date(form.starts_at).toISOString()
-        : null,
-      ends_at: form.ends_at
-        ? new Date(form.ends_at).toISOString()
-        : null,
+      starts_at: form.starts_at ? madridInputToIso(form.starts_at) : null,
+      ends_at: form.ends_at ? madridInputToIso(form.ends_at) : null,
       updated_at: new Date().toISOString(),
     };
 
@@ -261,7 +254,7 @@ export default function AvisosPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Inicio
+                  Inicio (hora de Madrid)
                 </label>
 
                 <input
@@ -279,7 +272,7 @@ export default function AvisosPage() {
 
               <div>
                 <label className="mb-2 block text-sm font-semibold text-gray-700">
-                  Fin
+                  Fin (hora de Madrid)
                 </label>
 
                 <input
