@@ -9,7 +9,7 @@ create table if not exists public.home_gallery (
   title text,
   subtitle text,
   link_type text not null default 'none'
-    check (link_type in ('none', 'web', 'horarios', 'agenda', 'zakat')),
+    check (link_type in ('none', 'web', 'horarios', 'agenda', 'contenido', 'coran', 'guia', 'dua', 'qibla', 'zakat', 'donar')),
   link_url text,
   active boolean not null default true,
   sort_order integer not null default 0,

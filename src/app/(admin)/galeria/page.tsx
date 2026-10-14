@@ -13,7 +13,7 @@ const BUCKET = 'home-gallery';
 const MAX_WIDTH = 1600;
 const JPEG_QUALITY = 0.82;
 
-type LinkType = 'none' | 'web' | 'horarios' | 'agenda' | 'zakat';
+type LinkType = 'none' | 'web' | 'horarios' | 'agenda' | 'contenido' | 'coran' | 'guia' | 'dua' | 'qibla' | 'zakat' | 'donar';
 
 type GalleryItem = {
   id: number;
@@ -31,7 +31,13 @@ const LINK_LABELS: Record<LinkType, string> = {
   web: 'Enlace web',
   horarios: 'Horarios',
   agenda: 'Agenda',
+  contenido: 'Contenido (jutbahs, noticias, vídeos)',
+  coran: 'Corán',
+  guia: 'Guía para nuevos musulmanes',
+  dua: "Du'a an-Nasiri",
+  qibla: 'Qibla',
   zakat: 'Zakat',
+  donar: 'Donar',
 };
 
 const emptyForm = {
