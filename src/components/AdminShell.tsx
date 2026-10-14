@@ -12,6 +12,7 @@ const navigation = [
   { href: '/donaciones', label: 'Donaciones', icon: '♥' },
   { href: '/configuracion', label: 'Configuración', icon: '⚙' },
   { href: '/destacados', label: 'Destacados', icon: '★' },
+  { href: '/galeria', label: 'Galería de Inicio', icon: '▤' },
 ];
 
 type AdminShellProps = {
