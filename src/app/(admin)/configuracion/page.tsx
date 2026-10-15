@@ -48,6 +48,11 @@ const sections = [
     description: 'Mostrar la futura sección de orientación de la Qibla.',
   },
   {
+    key: 'gallery_enabled',
+    title: 'Galería de Inicio',
+    description: 'Mostrar el carrusel de fotos en la pantalla de Inicio (las fotos se gestionan en «Galería de Inicio»).',
+  },
+  {
     key: 'announcements_enabled',
     title: 'Avisos',
     description: 'Permitir mostrar avisos administrados desde Supabase.',

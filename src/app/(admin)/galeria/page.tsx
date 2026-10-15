@@ -75,15 +75,36 @@ export default function GaleriaPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
+  // Interruptor general del carrusel (app_config.gallery_enabled), el mismo que en Configuración.
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  const [savingEnabled, setSavingEnabled] = useState(false);
 
   useEffect(() => {
     loadItems();
+    loadEnabled();
   }, []);
 
   function chooseFile(next: File | null) {
     if (preview?.startsWith('blob:')) URL.revokeObjectURL(preview);
     setFile(next);
     if (next) setPreview(URL.createObjectURL(next));
+  }
+
+  async function loadEnabled() {
+    const { data } = await supabase.from('app_config').select('value').eq('key', 'gallery_enabled').maybeSingle();
+    setEnabled(data?.value === true || data?.value === 'true');
+  }
+
+  async function toggleEnabled() {
+    const next = !enabled;
+    setSavingEnabled(true);
+    setError('');
+    const { error } = await supabase
+      .from('app_config')
+      .upsert({ key: 'gallery_enabled', value: next, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    if (error) setError(error.message);
+    else setEnabled(next);
+    setSavingEnabled(false);
   }
 
   async function loadItems() {
@@ -238,6 +259,27 @@ export default function GaleriaPage() {
       {message ? (
         <div className="mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">{message}</div>
       ) : null}
+
+      <section className="mb-8 flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-sm md:flex-row md:items-center md:justify-between md:p-8">
+        <div>
+          <h2 className="text-xl font-bold text-primary-dark">Carrusel en la app</h2>
+          <p className="mt-2 text-sm text-gray-500">
+            {enabled === null
+              ? 'Comprobando…'
+              : enabled
+                ? 'Activado: la app muestra las fotos visibles debajo de la tarjeta de oración.'
+                : 'Desactivado: la app no muestra el carrusel, aunque haya fotos visibles.'}
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={toggleEnabled}
+          disabled={enabled === null || savingEnabled}
+          className={`rounded-xl px-5 py-3 font-bold disabled:opacity-50 ${enabled ? 'bg-gray-100 text-gray-700' : 'bg-primary text-white'}`}
+        >
+          {savingEnabled ? 'Guardando…' : enabled ? 'Desactivar carrusel' : 'Activar carrusel'}
+        </button>
+      </section>
 
       <section className="rounded-3xl bg-white p-6 shadow-sm md:p-8">
         <div className="flex items-center justify-between">
