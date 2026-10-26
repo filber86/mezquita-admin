@@ -53,6 +53,11 @@ const sections = [
     description: 'Mostrar el carrusel de fotos en la pantalla de Inicio (las fotos se gestionan en «Galería de Inicio»).',
   },
   {
+    key: 'fiqh_enabled',
+    title: 'Consultas de fiqh',
+    description: 'Mostrar en Más el formulario de consultas de fiqh (llegan por correo). Actívalo solo cuando esté acordado quién responde.',
+  },
+  {
     key: 'announcements_enabled',
     title: 'Avisos',
     description: 'Permitir mostrar avisos administrados desde Supabase.',
