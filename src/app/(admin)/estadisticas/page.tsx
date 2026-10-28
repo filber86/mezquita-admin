@@ -44,7 +44,7 @@ const LABELS: Record<string, string> = {
 };
 
 const label = (key: string) => LABELS[key] ?? key;
-const number = (value: number) => new Intl.NumberFormat('es-ES').format(value);
+const number = (value: number) => new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(value);
 
 // Hoy en Madrid (AAAA-MM-DD), el mismo día que usa track_events().
 function madridToday() {
@@ -136,8 +136,14 @@ export default function EstadisticasPage() {
   const totals = useMemo(() => {
     const active = daily.reduce((sum, row) => sum + row.active, 0);
     const opens = daily.reduce((sum, row) => sum + row.opens, 0);
-    return { averageActive: Math.round(active / days), maxActive: Math.max(0, ...daily.map((row) => row.active)), opens };
-  }, [daily, days]);
+    // Media de los días con datos: los anteriores al arranque de las estadísticas no cuentan como días sin usuarios.
+    const daysWithData = daily.filter((row) => row.active > 0).length;
+    return {
+      averageActive: daysWithData ? active / daysWithData : 0,
+      maxActive: Math.max(0, ...daily.map((row) => row.active)),
+      opens,
+    };
+  }, [daily]);
 
   const itemsOf = (event: Item['event']) =>
     (report?.items ?? [])
