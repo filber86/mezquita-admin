@@ -79,6 +79,35 @@ function Bars({ rows }: { rows: { key: string; total: number }[] }) {
   );
 }
 
+function FilterSelect({
+  value,
+  onChange,
+  options,
+  allLabel,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  options: string[];
+  allLabel: string;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className={`rounded-xl px-3 py-2 text-sm font-semibold ${
+        value ? 'bg-primary text-white' : 'bg-[#f5f6f3] text-gray-600'
+      }`}
+    >
+      <option value="">{allLabel}</option>
+      {options.map((option) => (
+        <option key={option} value={option}>
+          {label(option)}
+        </option>
+      ))}
+    </select>
+  );
+}
+
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="rounded-3xl bg-white p-6 shadow-sm">
@@ -91,6 +120,10 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 export default function EstadisticasPage() {
   const [days, setDays] = useState<(typeof RANGES)[number]>(30);
   const [includePreview, setIncludePreview] = useState(false);
+  // Filtros opcionales; '' = todos.
+  const [platform, setPlatform] = useState('');
+  const [version, setVersion] = useState('');
+  const [lang, setLang] = useState('');
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -108,6 +141,10 @@ export default function EstadisticasPage() {
         p_from: from,
         p_to: to,
         p_include_preview: includePreview,
+        // Solo los filtros elegidos, para que sin filtros la llamada sea la misma de antes.
+        ...(platform ? { p_platform: platform } : {}),
+        ...(version ? { p_version: version } : {}),
+        ...(lang ? { p_lang: lang } : {}),
       });
       if (cancelled) return;
       if (error) {
@@ -121,7 +158,7 @@ export default function EstadisticasPage() {
     return () => {
       cancelled = true;
     };
-  }, [from, to, includePreview]);
+  }, [from, to, includePreview, platform, version, lang]);
 
   // Todos los días del periodo, también los que no tienen datos, para que la gráfica no se salte huecos.
   const daily = useMemo(() => {
@@ -151,6 +188,16 @@ export default function EstadisticasPage() {
       .map((item) => ({ key: item.name, total: Number(item.total) }));
   const shares = (rows: Share[] | undefined) => (rows ?? []).map((row) => ({ key: row.key, total: Number(row.total) }));
 
+  // Opciones de cada filtro: las que tienen usuarios con los otros filtros puestos (el informe no aplica a cada
+  // reparto su propio filtro), más la elegida aunque se haya quedado sin datos.
+  const optionsOf = (rows: Share[] | undefined, selected: string, sort?: (a: string, b: string) => number) => {
+    const keys = (rows ?? []).map((row) => row.key);
+    if (selected && !keys.includes(selected)) keys.push(selected);
+    return sort ? keys.sort(sort) : keys;
+  };
+  const newestFirst = (a: string, b: string) => b.localeCompare(a, 'en', { numeric: true });
+  const filtered = Boolean(platform || version || lang);
+
   const maxDaily = Math.max(1, ...daily.map((row) => row.active));
   const dayFormat = new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 
@@ -159,7 +206,7 @@ export default function EstadisticasPage() {
       title="Estadísticas"
       description="Uso de la app, anónimo: solo totales por día, sin datos de las personas ni de sus móviles."
     >
-      <section className="mb-6 flex flex-col gap-3 rounded-3xl bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <section className="mb-6 flex flex-col gap-3 rounded-3xl bg-white p-6 shadow-sm lg:flex-row lg:flex-wrap lg:items-center lg:justify-between">
         <div className="flex gap-2">
           {RANGES.map((range) => (
             <button
@@ -174,11 +221,35 @@ export default function EstadisticasPage() {
           ))}
         </div>
 
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterSelect value={platform} onChange={setPlatform} allLabel="Todas las plataformas"
+            options={optionsOf(report?.platforms, platform)} />
+          <FilterSelect value={version} onChange={setVersion} allLabel="Todas las versiones"
+            options={optionsOf(report?.versions, version, newestFirst)} />
+          <FilterSelect value={lang} onChange={setLang} allLabel="Todos los idiomas"
+            options={optionsOf(report?.languages, lang)} />
+          {filtered ? (
+            <button
+              onClick={() => {
+                setPlatform('');
+                setVersion('');
+                setLang('');
+              }}
+              className="px-2 text-sm font-semibold text-primary"
+            >
+              Quitar filtros
+            </button>
+          ) : null}
+        </div>
+
         <label className="flex items-center gap-2 text-sm text-gray-600">
           <input
             type="checkbox"
             checked={includePreview}
-            onChange={(event) => setIncludePreview(event.target.checked)}
+            onChange={(event) => {
+              setIncludePreview(event.target.checked);
+              if (!event.target.checked && version.endsWith('-preview')) setVersion('');
+            }}
           />
           Incluir la app de pruebas (preview)
         </label>
@@ -245,7 +316,7 @@ export default function EstadisticasPage() {
 
       <p className="mt-6 text-xs text-gray-400">
         Cada móvil cuenta como usuario una vez al día. En el reparto por plataforma, versión e idioma, una persona que usa
-        la app varios días cuenta una vez por día.
+        la app varios días cuenta una vez por día. Con filtros, cada reparto aplica los demás filtros pero no el suyo.
       </p>
     </AdminShell>
   );

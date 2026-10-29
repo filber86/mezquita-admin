@@ -86,16 +86,32 @@ grant execute on function public.track_events(text, text, text, jsonb) to anon, 
 
 -- Resumen para el panel (sección Estadísticas). Corre con los permisos de quien llama, así que la RLS de
 -- arriba hace que solo un administrador vea datos. Agrupa en el servidor para no traer miles de filas.
-create or replace function public.app_stats_report(p_from date, p_to date, p_include_preview boolean default false)
+-- Los filtros de plataforma, versión e idioma son opcionales (null = todos). Cada reparto de usuarios aplica
+-- los otros dos filtros pero no el suyo, para que el panel siga pudiendo ofrecer todas las opciones.
+drop function if exists public.app_stats_report(date, date, boolean);
+create or replace function public.app_stats_report(
+  p_from date,
+  p_to date,
+  p_include_preview boolean default false,
+  p_platform text default null,
+  p_version text default null,
+  p_lang text default null
+)
 returns jsonb
 language sql
 stable
 set search_path = ''
 as $$
-  with stats as (
+  with base as (
     select * from public.app_stats
     where day between p_from and p_to
       and (p_include_preview or app_version not like '%-preview')
+  ),
+  stats as (
+    select * from base
+    where (p_platform is null or platform = p_platform)
+      and (p_version is null or app_version = p_version)
+      and (p_lang is null or lang = p_lang)
   )
   select jsonb_build_object(
     'daily', coalesce((
@@ -115,22 +131,34 @@ as $$
     ), '[]'::jsonb),
     'platforms', coalesce((
       select jsonb_agg(p order by p.total desc) from (
-        select platform as key, sum(count) as total from stats where event = 'active' group by platform
+        select platform as key, sum(count) as total from base
+        where event = 'active'
+          and (p_version is null or app_version = p_version)
+          and (p_lang is null or lang = p_lang)
+        group by platform
       ) p
     ), '[]'::jsonb),
     'versions', coalesce((
       select jsonb_agg(v order by v.total desc) from (
-        select app_version as key, sum(count) as total from stats where event = 'active' group by app_version
+        select app_version as key, sum(count) as total from base
+        where event = 'active'
+          and (p_platform is null or platform = p_platform)
+          and (p_lang is null or lang = p_lang)
+        group by app_version
       ) v
     ), '[]'::jsonb),
     'languages', coalesce((
       select jsonb_agg(l order by l.total desc) from (
-        select lang as key, sum(count) as total from stats where event = 'active' group by lang
+        select lang as key, sum(count) as total from base
+        where event = 'active'
+          and (p_platform is null or platform = p_platform)
+          and (p_version is null or app_version = p_version)
+        group by lang
       ) l
     ), '[]'::jsonb)
   );
 $$;
 
 -- Supabase da permiso de ejecución a anon en las funciones nuevas: se le quita explícitamente.
-revoke all on function public.app_stats_report(date, date, boolean) from public, anon;
-grant execute on function public.app_stats_report(date, date, boolean) to authenticated;
+revoke all on function public.app_stats_report(date, date, boolean, text, text, text) from public, anon;
+grant execute on function public.app_stats_report(date, date, boolean, text, text, text) to authenticated;
