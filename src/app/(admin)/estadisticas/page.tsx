@@ -13,6 +13,14 @@ type Report = { daily: Daily[]; items: Item[]; platforms: Share[]; versions: Sha
 
 const RANGES = [7, 30, 90] as const;
 
+// App publicada, app de pruebas (canal preview, versiones X.Y.Z-preview) o las dos.
+const CHANNELS = [
+  { key: 'production', label: 'Producción' },
+  { key: 'preview', label: 'Preview' },
+  { key: 'all', label: 'Producción y preview' },
+] as const;
+type Channel = (typeof CHANNELS)[number]['key'];
+
 const LABELS: Record<string, string> = {
   inicio: 'Inicio',
   oraciones: 'Oraciones',
@@ -43,7 +51,7 @@ const LABELS: Record<string, string> = {
   en: 'Inglés',
 };
 
-const label = (key: string) => LABELS[key] ?? key;
+const label = (key: string) => LABELS[key] ?? key.replace(/-preview$/, ' (preview)');
 const number = (value: number) => new Intl.NumberFormat('es-ES', { maximumFractionDigits: 1 }).format(value);
 
 // Hoy en Madrid (AAAA-MM-DD), el mismo día que usa track_events().
@@ -119,7 +127,7 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 
 export default function EstadisticasPage() {
   const [days, setDays] = useState<(typeof RANGES)[number]>(30);
-  const [includePreview, setIncludePreview] = useState(false);
+  const [channel, setChannel] = useState<Channel>('production');
   // Filtros opcionales; '' = todos.
   const [platform, setPlatform] = useState('');
   const [version, setVersion] = useState('');
@@ -140,7 +148,8 @@ export default function EstadisticasPage() {
       const { data, error } = await supabase.rpc('app_stats_report', {
         p_from: from,
         p_to: to,
-        p_include_preview: includePreview,
+        p_include_preview: channel === 'all',
+        ...(channel === 'preview' ? { p_preview_only: true } : {}),
         // Solo los filtros elegidos, para que sin filtros la llamada sea la misma de antes.
         ...(platform ? { p_platform: platform } : {}),
         ...(version ? { p_version: version } : {}),
@@ -158,7 +167,7 @@ export default function EstadisticasPage() {
     return () => {
       cancelled = true;
     };
-  }, [from, to, includePreview, platform, version, lang]);
+  }, [from, to, channel, platform, version, lang]);
 
   // Todos los días del periodo, también los que no tienen datos, para que la gráfica no se salte huecos.
   const daily = useMemo(() => {
@@ -242,17 +251,24 @@ export default function EstadisticasPage() {
           ) : null}
         </div>
 
-        <label className="flex items-center gap-2 text-sm text-gray-600">
-          <input
-            type="checkbox"
-            checked={includePreview}
-            onChange={(event) => {
-              setIncludePreview(event.target.checked);
-              if (!event.target.checked && version.endsWith('-preview')) setVersion('');
-            }}
-          />
-          Incluir la app de pruebas (preview)
-        </label>
+        <select
+          value={channel}
+          onChange={(event) => {
+            const next = event.target.value as Channel;
+            setChannel(next);
+            // La versión elegida puede no existir en el canal nuevo.
+            if ((next === 'production' && version.endsWith('-preview')) || (next === 'preview' && !version.endsWith('-preview'))) {
+              setVersion('');
+            }
+          }}
+          className="rounded-xl bg-[#f5f6f3] px-3 py-2 text-sm font-semibold text-gray-600"
+        >
+          {CHANNELS.map((option) => (
+            <option key={option.key} value={option.key}>
+              {option.label}
+            </option>
+          ))}
+        </select>
       </section>
 
       {error ? (

@@ -88,14 +88,17 @@ grant execute on function public.track_events(text, text, text, jsonb) to anon, 
 -- arriba hace que solo un administrador vea datos. Agrupa en el servidor para no traer miles de filas.
 -- Los filtros de plataforma, versión e idioma son opcionales (null = todos). Cada reparto de usuarios aplica
 -- los otros dos filtros pero no el suyo, para que el panel siga pudiendo ofrecer todas las opciones.
+-- p_preview_only deja solo la app de pruebas (versiones -preview); p_include_preview, las dos.
 drop function if exists public.app_stats_report(date, date, boolean);
+drop function if exists public.app_stats_report(date, date, boolean, text, text, text);
 create or replace function public.app_stats_report(
   p_from date,
   p_to date,
   p_include_preview boolean default false,
   p_platform text default null,
   p_version text default null,
-  p_lang text default null
+  p_lang text default null,
+  p_preview_only boolean default false
 )
 returns jsonb
 language sql
@@ -105,7 +108,10 @@ as $$
   with base as (
     select * from public.app_stats
     where day between p_from and p_to
-      and (p_include_preview or app_version not like '%-preview')
+      and case
+        when p_preview_only then app_version like '%-preview'
+        else p_include_preview or app_version not like '%-preview'
+      end
   ),
   stats as (
     select * from base
@@ -160,5 +166,5 @@ as $$
 $$;
 
 -- Supabase da permiso de ejecución a anon en las funciones nuevas: se le quita explícitamente.
-revoke all on function public.app_stats_report(date, date, boolean, text, text, text) from public, anon;
-grant execute on function public.app_stats_report(date, date, boolean, text, text, text) to authenticated;
+revoke all on function public.app_stats_report(date, date, boolean, text, text, text, boolean) from public, anon;
+grant execute on function public.app_stats_report(date, date, boolean, text, text, text, boolean) to authenticated;
