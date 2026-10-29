@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { AdminShell } from '@/components/AdminShell';
+import { BankTransfer, ZakatTransfers } from '@/components/ZakatTransfers';
 import { supabase } from '@/lib/supabase';
 
 type Payment = {
@@ -10,8 +11,18 @@ type Payment = {
   purpose: 'zakat' | 'donation';
   amount_cents: number;
   currency: string;
-  status: 'succeeded' | 'failed';
+  status: 'pending' | 'succeeded' | 'failed';
   created_at: string;
+  // Tarjeta (Stripe) o transferencia confirmada a mano.
+  method: 'card' | 'transfer';
+  reference?: string | null;
+};
+
+const STATUS_LABEL: Record<Payment['status'], string> = { succeeded: 'Completado', pending: 'Pendiente', failed: 'Fallido' };
+const STATUS_CLASS: Record<Payment['status'], string> = {
+  succeeded: 'bg-emerald-50 text-emerald-700',
+  pending: 'bg-amber-50 text-amber-700',
+  failed: 'bg-red-50 text-red-700',
 };
 
 const MONTHS = [
@@ -24,12 +35,14 @@ function money(cents: number) {
 }
 
 function toCsv(rows: Payment[]) {
-  const header = ['Fecha', 'Concepto', 'Importe', 'Estado'];
+  const header = ['Fecha', 'Concepto', 'Método', 'Referencia', 'Importe', 'Estado'];
   const lines = rows.map((row) => [
     new Date(row.created_at).toISOString(),
     row.purpose === 'zakat' ? 'Zakat' : 'Donación',
+    row.method === 'transfer' ? 'Transferencia' : 'Tarjeta',
+    row.reference ?? '',
     (row.amount_cents / 100).toFixed(2).replace('.', ','),
-    row.status === 'succeeded' ? 'Completado' : 'Fallido',
+    STATUS_LABEL[row.status],
   ]);
 
   return [header, ...lines].map((line) => line.join(';')).join('\n');
@@ -47,6 +60,7 @@ function downloadCsv(csv: string, filename: string) {
 
 export default function DonacionesPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [transfers, setTransfers] = useState<BankTransfer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [year, setYear] = useState<number | 'all'>('all');
@@ -57,15 +71,31 @@ export default function DonacionesPage() {
     setLoading(true);
     setError('');
 
-    const { data, error } = await supabase
-      .from('payments')
-      .select('*')
-      .order('created_at', { ascending: false });
+    const [cards, bank] = await Promise.all([
+      supabase.from('payments').select('*').order('created_at', { ascending: false }),
+      supabase.from('bank_transfers').select('*').order('created_at', { ascending: false }),
+    ]);
 
-    if (error) {
-      setError(error.message);
+    if (cards.error) {
+      setError(cards.error.message);
     } else {
-      setPayments((data ?? []) as Payment[]);
+      // Sin la tabla de transferencias (SQL aún sin ejecutar) se siguen viendo los pagos con tarjeta.
+      const bankRows = bank.error ? [] : ((bank.data ?? []) as BankTransfer[]);
+      setTransfers(bankRows);
+      const confirmed: Payment[] = bankRows
+        .filter((t) => t.status === 'confirmed')
+        .map((t) => ({
+          id: t.id,
+          purpose: 'zakat',
+          amount_cents: t.amount_cents,
+          currency: 'eur',
+          status: 'succeeded',
+          created_at: t.reviewed_at ?? t.created_at,
+          method: 'transfer',
+          reference: t.reference,
+        }));
+      const cardRows = ((cards.data ?? []) as Omit<Payment, 'method'>[]).map((p) => ({ ...p, method: 'card' as const }));
+      setPayments([...cardRows, ...confirmed].sort((a, b) => b.created_at.localeCompare(a.created_at)));
     }
 
     setLoading(false);
@@ -120,7 +150,7 @@ export default function DonacionesPage() {
   return (
     <AdminShell
       title="Donaciones"
-      description="Zakat y donaciones recibidas a través de Stripe, separadas por concepto."
+      description="Zakat y donaciones recibidas con tarjeta (Stripe) y transferencias del Zakat confirmadas, separadas por concepto."
     >
       <section className="mb-6 flex flex-col gap-3 rounded-3xl bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-3">
@@ -193,6 +223,8 @@ export default function DonacionesPage() {
         </div>
       </section>
 
+      {purpose !== 'donation' ? <ZakatTransfers transfers={transfers} onChanged={load} /> : null}
+
       <section className="mt-8">
         <h2 className="mb-4 text-xl font-bold text-primary-dark">Movimientos</h2>
 
@@ -209,6 +241,7 @@ export default function DonacionesPage() {
                 <tr className="border-b border-gray-100 text-left text-gray-500">
                   <th className="px-5 py-3 font-semibold">Fecha</th>
                   <th className="px-5 py-3 font-semibold">Concepto</th>
+                  <th className="px-5 py-3 font-semibold">Método</th>
                   <th className="px-5 py-3 font-semibold">Importe</th>
                   <th className="px-5 py-3 font-semibold">Estado</th>
                 </tr>
@@ -222,16 +255,13 @@ export default function DonacionesPage() {
                     <td className="px-5 py-3 font-semibold text-primary-dark">
                       {payment.purpose === 'zakat' ? 'Zakat' : 'Donación'}
                     </td>
+                    <td className="px-5 py-3 text-gray-600">
+                      {payment.method === 'transfer' ? `Transferencia · ${payment.reference}` : 'Tarjeta'}
+                    </td>
                     <td className="px-5 py-3 text-gray-900">{money(payment.amount_cents)}</td>
                     <td className="px-5 py-3">
-                      <span
-                        className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                          payment.status === 'succeeded'
-                            ? 'bg-emerald-50 text-emerald-700'
-                            : 'bg-red-50 text-red-700'
-                        }`}
-                      >
-                        {payment.status === 'succeeded' ? 'Completado' : 'Fallido'}
+                      <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${STATUS_CLASS[payment.status] ?? STATUS_CLASS.failed}`}>
+                        {STATUS_LABEL[payment.status] ?? payment.status}
                       </span>
                     </td>
                   </tr>
