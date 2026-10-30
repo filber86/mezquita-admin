@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminShell } from '@/components/AdminShell';
+import { AvisosTabs } from '@/components/AvisosTabs';
 import { FormEvent, useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -132,9 +133,11 @@ export default function NotificationsPage() {
 
 return (
   <AdminShell
-    title="Notificaciones"
-    description="Envía notificaciones push a los dispositivos que tienen instalada la app."
+    title="Avisos y notificaciones"
+    description="Notificaciones push: llegan al móvil aunque la app esté cerrada."
   >
+    <AvisosTabs />
+
     <div className="mx-auto max-w-3xl">
       <div className="mb-6 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <p className="text-sm text-gray-500">Dispositivos activos</p>

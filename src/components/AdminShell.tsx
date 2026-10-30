@@ -4,17 +4,56 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-const navigation = [
-  { href: '/', label: 'Inicio', icon: '⌂' },
-  { href: '/avisos', label: 'Avisos', icon: '●' },
-  { href: '/calendario', label: 'Calendario', icon: '▣' },
-  { href: '/notificaciones', label: 'Notificaciones', icon: '◆' },
-  { href: '/donaciones', label: 'Donaciones', icon: '♥' },
-  { href: '/estadisticas', label: 'Estadísticas', icon: '▥' },
-  { href: '/configuracion', label: 'Configuración', icon: '⚙' },
-  { href: '/destacados', label: 'Destacados', icon: '★' },
-  { href: '/galeria', label: 'Galería de Inicio', icon: '▤' },
+// Agrupado por tema: lo que se publica en la app, lo que se consulta y
+// los ajustes generales.
+const navigationGroups = [
+  {
+    title: null,
+    items: [{ href: '/', label: 'Inicio', icon: '⌂' }],
+  },
+  {
+    title: 'Publicar en la app',
+    items: [
+      {
+        href: '/avisos',
+        label: 'Avisos y notificaciones',
+        icon: '●',
+        also: ['/notificaciones'],
+      },
+      { href: '/destacados', label: 'Destacados', icon: '★' },
+      { href: '/galeria', label: 'Galería de Inicio', icon: '▤' },
+      { href: '/calendario', label: 'Calendario', icon: '▣' },
+    ],
+  },
+  {
+    title: 'Consultar',
+    items: [
+      { href: '/donaciones', label: 'Donaciones', icon: '♥' },
+      { href: '/estadisticas', label: 'Estadísticas', icon: '▥' },
+    ],
+  },
+  {
+    title: 'Ajustes',
+    items: [{ href: '/configuracion', label: 'Configuración', icon: '⚙' }],
+  },
 ];
+
+type NavItem = {
+  href: string;
+  label: string;
+  icon: string;
+  also?: string[];
+};
+
+const navigation: NavItem[] = navigationGroups.flatMap((group) => group.items);
+
+function isActive(item: NavItem, pathname: string) {
+  if (item.href === '/') return pathname === '/';
+
+  return [item.href, ...(item.also ?? [])].some((href) =>
+    pathname.startsWith(href)
+  );
+}
 
 type AdminShellProps = {
   children: React.ReactNode;
@@ -60,10 +99,7 @@ export function AdminShell({
       {/* Navegación móvil */}
       <nav className="flex gap-2 overflow-x-auto border-b border-gray-200 bg-white px-4 py-3 lg:hidden">
         {navigation.map((item) => {
-          const active =
-            item.href === '/'
-              ? pathname === '/'
-              : pathname.startsWith(item.href);
+          const active = isActive(item, pathname);
 
           return (
             <Link
@@ -97,31 +133,40 @@ export function AdminShell({
           </p>
         </div>
 
-        <nav className="mt-10 space-y-2">
-          {navigation.map((item) => {
-            const active =
-              item.href === '/'
-                ? pathname === '/'
-                : pathname.startsWith(item.href);
+        <nav className="mt-10 space-y-6 overflow-y-auto">
+          {navigationGroups.map((group) => (
+            <div key={group.title ?? 'inicio'}>
+              {group.title ? (
+                <p className="mb-2 px-4 text-[10px] font-black tracking-[0.2em] text-white/40">
+                  {group.title.toUpperCase()}
+                </p>
+              ) : null}
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold transition ${
-                  active
-                    ? 'bg-white text-primary'
-                    : 'text-white/75 hover:bg-white/10 hover:text-white'
-                }`}
-              >
-                <span className="w-5 text-center">
-                  {item.icon}
-                </span>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const active = isActive(item, pathname);
 
-                {item.label}
-              </Link>
-            );
-          })}
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                        active
+                          ? 'bg-white text-primary'
+                          : 'text-white/75 hover:bg-white/10 hover:text-white'
+                      }`}
+                    >
+                      <span className="w-5 text-center">
+                        {item.icon}
+                      </span>
+
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         <div className="mt-auto border-t border-white/10 pt-5">

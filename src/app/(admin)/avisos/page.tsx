@@ -1,6 +1,7 @@
 'use client';
 
 import { AdminShell } from '@/components/AdminShell';
+import { AvisosTabs } from '@/components/AvisosTabs';
 import { FormEvent, useEffect, useState } from 'react';
 import { isoToMadridInput, madridInputToIso } from '@/lib/madridTime';
 import { supabase } from '@/lib/supabase';
@@ -174,9 +175,11 @@ export default function AvisosPage() {
 
   return (
   <AdminShell
-    title="Avisos"
-    description="Gestiona los avisos que se muestran en la app."
+    title="Avisos y notificaciones"
+    description="Avisos: tarjetas que se muestran dentro de la app."
   >
+    <AvisosTabs />
+
         
         <section className="mt-8 rounded-3xl bg-white p-6 shadow-sm md:p-8">
           <div className="flex items-center justify-between">

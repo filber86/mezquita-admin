@@ -16,61 +16,86 @@ type ConfigItem = {
   updated_at?: string | null;
 };
 
-const sections = [
+// Interruptores de app_config agrupados por tema.
+const sectionGroups = [
   {
-    key: 'news_enabled',
-    title: 'Noticias',
-    description: 'Mostrar las noticias de la web en la app.',
+    title: 'Contenido',
+    description: 'Lo que la app muestra de la web, la agenda y YouTube.',
+    items: [
+      {
+        key: 'news_enabled',
+        title: 'Noticias',
+        description: 'Mostrar las noticias de la web en la app.',
+      },
+      {
+        key: 'events_enabled',
+        title: 'Eventos',
+        description: 'Mostrar la agenda y los próximos eventos.',
+      },
+      {
+        key: 'youtube_enabled',
+        title: 'YouTube',
+        description: 'Mostrar vídeos y jutbahs de YouTube.',
+      },
+      {
+        key: 'announcements_enabled',
+        title: 'Avisos',
+        description: 'Permitir mostrar avisos administrados desde Supabase.',
+      },
+      {
+        key: 'gallery_enabled',
+        title: 'Galería de Inicio',
+        description: 'Mostrar el carrusel de fotos en la pantalla de Inicio (las fotos se gestionan en «Galería de Inicio»).',
+      },
+    ],
   },
   {
-    key: 'events_enabled',
-    title: 'Eventos',
-    description: 'Mostrar la agenda y los próximos eventos.',
+    title: 'Donaciones',
+    description: 'Pagos dentro de la app.',
+    items: [
+      {
+        key: 'donations_enabled',
+        title: 'Donativos',
+        description: 'Mostrar la donación general (sadaqa) en la app.',
+      },
+      {
+        key: 'zakat_enabled',
+        title: 'Zakat',
+        description: 'Mostrar la calculadora y el pago de Zakat. Actívalo solo cuando un experto haya verificado los cálculos.',
+      },
+    ],
   },
   {
-    key: 'youtube_enabled',
-    title: 'YouTube',
-    description: 'Mostrar vídeos y jutbahs de YouTube.',
+    title: 'Otras funciones',
+    description: 'Secciones que se activan cuando están listas.',
+    items: [
+      {
+        key: 'fiqh_enabled',
+        title: 'Consultas de fiqh',
+        description: 'Mostrar en Más el formulario de consultas de fiqh (llegan por correo). Actívalo solo cuando esté acordado quién responde.',
+      },
+      {
+        key: 'qibla_enabled',
+        title: 'Qibla',
+        description: 'Mostrar la futura sección de orientación de la Qibla.',
+      },
+    ],
   },
   {
-    key: 'donations_enabled',
-    title: 'Donativos',
-    description: 'Mostrar la donación general (sadaqa) en la app.',
-  },
-  {
-    key: 'zakat_enabled',
-    title: 'Zakat',
-    description: 'Mostrar la calculadora y el pago de Zakat. Actívalo solo cuando un experto haya verificado los cálculos.',
-  },
-  {
-    key: 'qibla_enabled',
-    title: 'Qibla',
-    description: 'Mostrar la futura sección de orientación de la Qibla.',
-  },
-  {
-    key: 'gallery_enabled',
-    title: 'Galería de Inicio',
-    description: 'Mostrar el carrusel de fotos en la pantalla de Inicio (las fotos se gestionan en «Galería de Inicio»).',
-  },
-  {
-    key: 'fiqh_enabled',
-    title: 'Consultas de fiqh',
-    description: 'Mostrar en Más el formulario de consultas de fiqh (llegan por correo). Actívalo solo cuando esté acordado quién responde.',
-  },
-  {
-    key: 'new_design_enabled',
-    title: 'Diseño nuevo',
-    description: 'Mostrar la app con el diseño nuevo (fondo neutro, Inicio con el logo). Apagado, vuelve el diseño de siempre al abrir la app. Solo afecta a la versión 1.2.0 en adelante.',
-  },
-  {
-    key: 'onboarding_enabled',
-    title: 'Bienvenida',
-    description: 'Al instalar la app, tres pasos para elegir idioma, lugar y avisos de oración. A quien ya la usaba sin avisos se le muestra una vez una tarjeta en Inicio para activarlos. Solo afecta a la versión 1.2.0 en adelante.',
-  },
-  {
-    key: 'announcements_enabled',
-    title: 'Avisos',
-    description: 'Permitir mostrar avisos administrados desde Supabase.',
+    title: 'Aspecto y primera apertura',
+    description: 'Solo afectan a la versión 1.2.0 en adelante.',
+    items: [
+      {
+        key: 'new_design_enabled',
+        title: 'Diseño nuevo',
+        description: 'Mostrar la app con el diseño nuevo (fondo neutro, Inicio con el logo). Apagado, vuelve el diseño de siempre al abrir la app. Solo afecta a la versión 1.2.0 en adelante.',
+      },
+      {
+        key: 'onboarding_enabled',
+        title: 'Bienvenida',
+        description: 'Al instalar la app, tres pasos para elegir idioma, lugar y avisos de oración. A quien ya la usaba sin avisos se le muestra una vez una tarjeta en Inicio para activarlos. Solo afecta a la versión 1.2.0 en adelante.',
+      },
+    ],
   },
 ];
 
@@ -231,62 +256,81 @@ export default function ConfiguracionPage() {
               </p>
             </div>
 
-            <div className="mt-6 divide-y divide-gray-100">
-              {sections.map((section) => {
-                const active = enabled(section.key);
-                const saving = savingKey === section.key;
+            {sectionGroups.map((group) => (
+              <div key={group.title} className="mt-8">
+                <h3 className="text-xs font-black tracking-[0.18em] text-[#b28b45]">
+                  {group.title.toUpperCase()}
+                </h3>
 
-                return (
-                  <div
-                    key={section.key}
-                    className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between"
-                  >
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <h3 className="font-bold text-primary-dark">
-                          {section.title}
-                        </h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  {group.description}
+                </p>
 
-                        <span
-                          className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                <div className="mt-2 divide-y divide-gray-100">
+                  {group.items.map((section) => {
+                    const active = enabled(section.key);
+                    const saving = savingKey === section.key;
+
+                    return (
+                      <div
+                        key={section.key}
+                        className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between"
+                      >
+                        <div>
+                          <div className="flex items-center gap-3">
+                            <h3 className="font-bold text-primary-dark">
+                              {section.title}
+                            </h3>
+
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                                active
+                                  ? 'bg-emerald-50 text-emerald-700'
+                                  : 'bg-gray-100 text-gray-500'
+                              }`}
+                            >
+                              {active ? 'Activo' : 'Inactivo'}
+                            </span>
+                          </div>
+
+                          <p className="mt-1 text-sm text-gray-500">
+                            {section.description}
+                          </p>
+                        </div>
+
+                        <button
+                          type="button"
+                          disabled={saving}
+                          onClick={() => toggle(section.key)}
+                          className={`relative h-8 w-14 shrink-0 rounded-full transition ${
                             active
-                              ? 'bg-emerald-50 text-emerald-700'
-                              : 'bg-gray-100 text-gray-500'
-                          }`}
+                              ? 'bg-primary'
+                              : 'bg-gray-300'
+                          } disabled:opacity-50`}
+                          aria-label={`${active ? 'Desactivar' : 'Activar'} ${section.title}`}
                         >
-                          {active ? 'Activo' : 'Inactivo'}
-                        </span>
+                          <span
+                            className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${
+                              active
+                                ? 'left-7'
+                                : 'left-1'
+                            }`}
+                          />
+                        </button>
                       </div>
-
-                      <p className="mt-1 text-sm text-gray-500">
-                        {section.description}
-                      </p>
-                    </div>
-
-                    <button
-                      type="button"
-                      disabled={saving}
-                      onClick={() => toggle(section.key)}
-                      className={`relative h-8 w-14 shrink-0 rounded-full transition ${
-                        active
-                          ? 'bg-primary'
-                          : 'bg-gray-300'
-                      } disabled:opacity-50`}
-                      aria-label={`${active ? 'Desactivar' : 'Activar'} ${section.title}`}
-                    >
-                      <span
-                        className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${
-                          active
-                            ? 'left-7'
-                            : 'left-1'
-                        }`}
-                      />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </section>
+
+          <MosqueInfoForm
+            value={config.mosque_info?.value}
+            onSaved={(info) =>
+              setConfig((current) => ({ ...current, mosque_info: { ...current.mosque_info, key: 'mosque_info', value: info } }))
+            }
+          />
 
           <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm md:p-8">
             <div>
@@ -334,6 +378,13 @@ export default function ConfiguracionPage() {
               </code>
             </div>
           </section>
+
+          <HijriCalendarForm
+            value={config.hijri_calendar?.value}
+            onSaved={(entries) =>
+              setConfig((current) => ({ ...current, hijri_calendar: { ...current.hijri_calendar, key: 'hijri_calendar', value: { months: entries } } }))
+            }
+          />
 
           <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm md:p-8">
             <div>
@@ -387,20 +438,6 @@ export default function ConfiguracionPage() {
               </div>
             </div>
           </section>
-
-          <HijriCalendarForm
-            value={config.hijri_calendar?.value}
-            onSaved={(entries) =>
-              setConfig((current) => ({ ...current, hijri_calendar: { ...current.hijri_calendar, key: 'hijri_calendar', value: { months: entries } } }))
-            }
-          />
-
-          <MosqueInfoForm
-            value={config.mosque_info?.value}
-            onSaved={(info) =>
-              setConfig((current) => ({ ...current, mosque_info: { ...current.mosque_info, key: 'mosque_info', value: info } }))
-            }
-          />
 
           <section className="mt-6 rounded-3xl border border-[#d8b66f]/30 bg-[#fffdf8] p-6">
             <p className="text-xs font-black tracking-[0.18em] text-[#b28b45]">
