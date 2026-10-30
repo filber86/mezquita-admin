@@ -2,9 +2,11 @@ import type { NextConfig } from "next";
 
 const isDev = process.env.NODE_ENV === "development";
 
-// El navegador solo habla con este mismo dominio y con Supabase (REST, Auth,
-// Storage y Realtime). Sin nonces para no forzar el renderizado dinámico.
+// El navegador solo habla con este mismo dominio, con Supabase (REST, Auth,
+// Storage y Realtime) y con la API de pagos (transferencias del Zakat).
+// Sin nonces para no forzar el renderizado dinámico.
 const supabase = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://supabase.co").origin;
+const paymentsApi = new URL(process.env.NEXT_PUBLIC_PAYMENTS_API ?? "https://zakat-rates-api.vercel.app/api").origin;
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -12,7 +14,7 @@ const contentSecurityPolicy = [
   "style-src 'self' 'unsafe-inline'",
   `img-src 'self' blob: data: ${supabase}`,
   "font-src 'self'",
-  `connect-src 'self' ${supabase} ${supabase.replace(/^https:/, "wss:")}`,
+  `connect-src 'self' ${supabase} ${supabase.replace(/^https:/, "wss:")} ${paymentsApi}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
