@@ -58,6 +58,11 @@ const sections = [
     description: 'Mostrar en Más el formulario de consultas de fiqh (llegan por correo). Actívalo solo cuando esté acordado quién responde.',
   },
   {
+    key: 'new_design_enabled',
+    title: 'Diseño nuevo',
+    description: 'Mostrar la app con el diseño nuevo (fondo neutro, Inicio con el logo). Apagado, vuelve el diseño de siempre al abrir la app. Solo afecta a la versión 1.2.0 en adelante.',
+  },
+  {
     key: 'announcements_enabled',
     title: 'Avisos',
     description: 'Permitir mostrar avisos administrados desde Supabase.',
