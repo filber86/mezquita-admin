@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { LogoMark } from '@/components/LogoMark';
 import { supabase } from '@/lib/supabase';
 
 // Agrupado por tema: lo que se publica en la app, lo que se consulta y
@@ -79,13 +80,17 @@ export function AdminShell({
     <div className="min-h-screen bg-[#f5f6f3]">
       {/* Barra móvil */}
       <header className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-4 lg:hidden">
-        <div>
-          <p className="text-[9px] font-black tracking-[0.22em] text-[#b28b45]">
-            MEZQUITA MAYOR
-          </p>
-          <p className="font-bold text-primary-dark">
-            Administración
-          </p>
+        <div className="flex items-center gap-3">
+          <LogoMark className="h-9 w-9 bg-primary-dark" />
+
+          <div>
+            <p className="text-[9px] font-black tracking-[0.22em] text-[#b28b45]">
+              MEZQUITA MAYOR
+            </p>
+            <p className="font-bold text-primary-dark">
+              Administración
+            </p>
+          </div>
         </div>
 
         <button
@@ -120,6 +125,8 @@ export function AdminShell({
       {/* Sidebar escritorio */}
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-primary-dark p-6 text-white lg:flex">
         <div>
+          <LogoMark className="mb-5 h-14 w-14 bg-white" />
+
           <p className="text-[10px] font-black tracking-[0.25em] text-[#d8b66f]">
             MEZQUITA MAYOR
           </p>

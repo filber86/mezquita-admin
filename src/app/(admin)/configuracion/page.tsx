@@ -99,7 +99,20 @@ const sectionGroups = [
   },
 ];
 
+// Las pestañas solo ocultan el contenido (no lo desmontan) para no perder
+// lo que se esté escribiendo en un formulario al cambiar de pestaña.
+const configTabs = [
+  { key: 'funciones', label: 'Funciones de la app' },
+  { key: 'mezquita', label: 'Datos de la mezquita' },
+  { key: 'calendarios', label: 'Calendarios' },
+  { key: 'sistema', label: 'Sistema' },
+] as const;
+
+type ConfigTab = (typeof configTabs)[number]['key'];
+
 export default function ConfiguracionPage() {
+  const [tab, setTab] = useState<ConfigTab>('funciones');
+
   const [config, setConfig] = useState<Record<string, ConfigItem>>({});
   const [loading, setLoading] = useState(true);
   const [savingKey, setSavingKey] = useState<string | null>(null);
@@ -155,6 +168,20 @@ export default function ConfiguracionPage() {
     // de Supabase; a partir de ahí el usuario lo edita libremente.
     queueMicrotask(() => setSourceIcs(value));
   }, [config.calendar_source_ics]);
+
+  // La pestaña va en el #hash para que recargar o compartir el enlace
+  // vuelva a la misma.
+  useEffect(() => {
+    const hash = window.location.hash.slice(1);
+    const match = configTabs.find((item) => item.key === hash);
+
+    if (match) queueMicrotask(() => setTab(match.key));
+  }, []);
+
+  function selectTab(key: ConfigTab) {
+    setTab(key);
+    window.history.replaceState(null, '', `#${key}`);
+  }
 
   async function saveSourceIcs(event: FormEvent) {
     event.preventDefault();
@@ -245,217 +272,242 @@ export default function ConfiguracionPage() {
             </div>
           ) : null}
 
-          <section className="rounded-3xl bg-white p-6 shadow-sm md:p-8">
-            <div>
-              <h2 className="text-xl font-bold text-primary-dark">
-                Secciones de la app
-              </h2>
+          <div className="mb-6 flex gap-1 overflow-x-auto border-b border-gray-200">
+            {configTabs.map((item) => (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => selectTab(item.key)}
+                className={`-mb-px whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition ${
+                  tab === item.key
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-gray-500 hover:text-primary-dark'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
 
-              <p className="mt-2 text-sm text-gray-500">
-                Activa o desactiva las distintas funciones disponibles.
-              </p>
-            </div>
+          <div hidden={tab !== 'funciones'} className="[&>*:first-child]:mt-0">
+            <section className="rounded-3xl bg-white p-6 shadow-sm md:p-8">
+              <div>
+                <h2 className="text-xl font-bold text-primary-dark">
+                  Secciones de la app
+                </h2>
 
-            {sectionGroups.map((group) => (
-              <div key={group.title} className="mt-8">
-                <h3 className="text-xs font-black tracking-[0.18em] text-[#b28b45]">
-                  {group.title.toUpperCase()}
-                </h3>
-
-                <p className="mt-1 text-sm text-gray-500">
-                  {group.description}
+                <p className="mt-2 text-sm text-gray-500">
+                  Activa o desactiva las distintas funciones disponibles.
                 </p>
+              </div>
 
-                <div className="mt-2 divide-y divide-gray-100">
-                  {group.items.map((section) => {
-                    const active = enabled(section.key);
-                    const saving = savingKey === section.key;
+              {sectionGroups.map((group) => (
+                <div key={group.title} className="mt-8">
+                  <h3 className="text-xs font-black tracking-[0.18em] text-[#b28b45]">
+                    {group.title.toUpperCase()}
+                  </h3>
 
-                    return (
-                      <div
-                        key={section.key}
-                        className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <div>
-                          <div className="flex items-center gap-3">
-                            <h3 className="font-bold text-primary-dark">
-                              {section.title}
-                            </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {group.description}
+                  </p>
 
-                            <span
-                              className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
-                                active
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-gray-100 text-gray-500'
-                              }`}
-                            >
-                              {active ? 'Activo' : 'Inactivo'}
-                            </span>
+                  <div className="mt-2 divide-y divide-gray-100">
+                    {group.items.map((section) => {
+                      const active = enabled(section.key);
+                      const saving = savingKey === section.key;
+
+                      return (
+                        <div
+                          key={section.key}
+                          className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <div className="flex items-center gap-3">
+                              <h3 className="font-bold text-primary-dark">
+                                {section.title}
+                              </h3>
+
+                              <span
+                                className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${
+                                  active
+                                    ? 'bg-emerald-50 text-emerald-700'
+                                    : 'bg-gray-100 text-gray-500'
+                                }`}
+                              >
+                                {active ? 'Activo' : 'Inactivo'}
+                              </span>
+                            </div>
+
+                            <p className="mt-1 text-sm text-gray-500">
+                              {section.description}
+                            </p>
                           </div>
 
-                          <p className="mt-1 text-sm text-gray-500">
-                            {section.description}
-                          </p>
-                        </div>
-
-                        <button
-                          type="button"
-                          disabled={saving}
-                          onClick={() => toggle(section.key)}
-                          className={`relative h-8 w-14 shrink-0 rounded-full transition ${
-                            active
-                              ? 'bg-primary'
-                              : 'bg-gray-300'
-                          } disabled:opacity-50`}
-                          aria-label={`${active ? 'Desactivar' : 'Activar'} ${section.title}`}
-                        >
-                          <span
-                            className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${
+                          <button
+                            type="button"
+                            disabled={saving}
+                            onClick={() => toggle(section.key)}
+                            className={`relative h-8 w-14 shrink-0 rounded-full transition ${
                               active
-                                ? 'left-7'
-                                : 'left-1'
-                            }`}
-                          />
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </section>
-
-          <MosqueInfoForm
-            value={config.mosque_info?.value}
-            onSaved={(info) =>
-              setConfig((current) => ({ ...current, mosque_info: { ...current.mosque_info, key: 'mosque_info', value: info } }))
-            }
-          />
-
-          <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm md:p-8">
-            <div>
-              <h2 className="text-xl font-bold text-primary-dark">
-                Calendario
-              </h2>
-
-              <p className="mt-2 text-sm text-gray-500">
-                El ICS real de la mezquita (Outlook u otro proveedor). Se
-                combina con el Wird para generar el calendario que usan la
-                app y el panel.
-              </p>
-            </div>
-
-            <form onSubmit={saveSourceIcs} className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <input
-                value={sourceIcs}
-                onChange={(event) => setSourceIcs(event.target.value)}
-                placeholder="https://.../calendar.ics"
-                className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-primary"
-              />
-
-              <button
-                type="submit"
-                disabled={savingSource || !sourceIcs.trim()}
-                className="rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
-              >
-                {savingSource ? 'Guardando…' : 'Guardar'}
-              </button>
-            </form>
-
-            {sourceMessage ? <p className="mt-3 text-sm font-semibold text-emerald-700">{sourceMessage}</p> : null}
-            {sourceError ? <p className="mt-3 text-sm text-red-600">{sourceError}</p> : null}
-
-            <div className="mt-6 border-t border-gray-100 pt-5">
-              <p className="text-sm font-semibold text-gray-500">
-                Calendario combinado (Outlook + Wird)
-              </p>
-              <p className="mt-1 text-sm text-gray-500">
-                Dirección que ya usan la app y el panel — se genera sola a partir
-                del calendario real de arriba, no hace falta configurarla.
-              </p>
-              <code className="mt-3 block break-all rounded-lg bg-primary-light px-4 py-3 text-sm text-primary-dark">
-                {COMBINED_CALENDAR_URL}
-              </code>
-            </div>
-          </section>
-
-          <HijriCalendarForm
-            value={config.hijri_calendar?.value}
-            onSaved={(entries) =>
-              setConfig((current) => ({ ...current, hijri_calendar: { ...current.hijri_calendar, key: 'hijri_calendar', value: { months: entries } } }))
-            }
-          />
-
-          <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm md:p-8">
-            <div>
-              <h2 className="text-xl font-bold text-primary-dark">
-                Sistema
-              </h2>
-
-              <p className="mt-2 text-sm text-gray-500">
-                Opciones generales de funcionamiento.
-              </p>
-            </div>
-
-            <div className="mt-6">
-              <div className="flex flex-col gap-4 rounded-2xl border border-amber-100 bg-amber-50/50 p-5 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-bold text-primary-dark">
-                      Modo mantenimiento
-                    </h3>
-
-                    {enabled('maintenance_mode') ? (
-                      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-800">
-                        ACTIVO
-                      </span>
-                    ) : null}
+                                ? 'bg-primary'
+                                : 'bg-gray-300'
+                            } disabled:opacity-50`}
+                            aria-label={`${active ? 'Desactivar' : 'Activar'} ${section.title}`}
+                          >
+                            <span
+                              className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${
+                                active
+                                  ? 'left-7'
+                                  : 'left-1'
+                              }`}
+                            />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
-
-                  <p className="mt-1 text-sm text-gray-600">
-                    Permite indicar a la app que se encuentra temporalmente en mantenimiento.
-                  </p>
                 </div>
+              ))}
+            </section>
+          </div>
+
+          <div hidden={tab !== 'mezquita'} className="[&>*:first-child]:mt-0">
+            <MosqueInfoForm
+              value={config.mosque_info?.value}
+              onSaved={(info) =>
+                setConfig((current) => ({ ...current, mosque_info: { ...current.mosque_info, key: 'mosque_info', value: info } }))
+              }
+            />
+          </div>
+
+          <div hidden={tab !== 'calendarios'} className="[&>*:first-child]:mt-0">
+            <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm md:p-8">
+              <div>
+                <h2 className="text-xl font-bold text-primary-dark">
+                  Calendario
+                </h2>
+
+                <p className="mt-2 text-sm text-gray-500">
+                  El ICS real de la mezquita (Outlook u otro proveedor). Se
+                  combina con el Wird para generar el calendario que usan la
+                  app y el panel.
+                </p>
+              </div>
+
+              <form onSubmit={saveSourceIcs} className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <input
+                  value={sourceIcs}
+                  onChange={(event) => setSourceIcs(event.target.value)}
+                  placeholder="https://.../calendar.ics"
+                  className="flex-1 rounded-lg border border-gray-300 px-4 py-3 text-sm text-gray-900 outline-none focus:border-primary"
+                />
 
                 <button
-                  type="button"
-                  disabled={savingKey === 'maintenance_mode'}
-                  onClick={() => toggle('maintenance_mode')}
-                  className={`relative h-8 w-14 shrink-0 rounded-full transition ${
-                    enabled('maintenance_mode')
-                      ? 'bg-amber-600'
-                      : 'bg-gray-300'
-                  } disabled:opacity-50`}
+                  type="submit"
+                  disabled={savingSource || !sourceIcs.trim()}
+                  className="rounded-lg bg-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-50"
                 >
-                  <span
-                    className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${
-                      enabled('maintenance_mode')
-                        ? 'left-7'
-                        : 'left-1'
-                    }`}
-                  />
+                  {savingSource ? 'Guardando…' : 'Guardar'}
                 </button>
+              </form>
+
+              {sourceMessage ? <p className="mt-3 text-sm font-semibold text-emerald-700">{sourceMessage}</p> : null}
+              {sourceError ? <p className="mt-3 text-sm text-red-600">{sourceError}</p> : null}
+
+              <div className="mt-6 border-t border-gray-100 pt-5">
+                <p className="text-sm font-semibold text-gray-500">
+                  Calendario combinado (Outlook + Wird)
+                </p>
+                <p className="mt-1 text-sm text-gray-500">
+                  Dirección que ya usan la app y el panel — se genera sola a partir
+                  del calendario real de arriba, no hace falta configurarla.
+                </p>
+                <code className="mt-3 block break-all rounded-lg bg-primary-light px-4 py-3 text-sm text-primary-dark">
+                  {COMBINED_CALENDAR_URL}
+                </code>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="mt-6 rounded-3xl border border-[#d8b66f]/30 bg-[#fffdf8] p-6">
-            <p className="text-xs font-black tracking-[0.18em] text-[#b28b45]">
-              BACKEND
-            </p>
+            <HijriCalendarForm
+              value={config.hijri_calendar?.value}
+              onSaved={(entries) =>
+                setConfig((current) => ({ ...current, hijri_calendar: { ...current.hijri_calendar, key: 'hijri_calendar', value: { months: entries } } }))
+              }
+            />
+          </div>
 
-            <h2 className="mt-2 font-bold text-primary-dark">
-              Supabase conectado
-            </h2>
+          <div hidden={tab !== 'sistema'} className="[&>*:first-child]:mt-0">
+            <section className="mt-6 rounded-3xl bg-white p-6 shadow-sm md:p-8">
+              <div>
+                <h2 className="text-xl font-bold text-primary-dark">
+                  Sistema
+                </h2>
 
-            <p className="mt-2 text-sm leading-6 text-gray-500">
-              Los cambios realizados aquí se guardan directamente en
-              <code className="mx-1 rounded bg-gray-100 px-1.5 py-0.5">
-                app_config
-              </code>
-              .
-            </p>
-          </section>
+                <p className="mt-2 text-sm text-gray-500">
+                  Opciones generales de funcionamiento.
+                </p>
+              </div>
+
+              <div className="mt-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-amber-100 bg-amber-50/50 p-5 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-bold text-primary-dark">
+                        Modo mantenimiento
+                      </h3>
+
+                      {enabled('maintenance_mode') ? (
+                        <span className="rounded-full bg-amber-100 px-2.5 py-1 text-[11px] font-bold text-amber-800">
+                          ACTIVO
+                        </span>
+                      ) : null}
+                    </div>
+
+                    <p className="mt-1 text-sm text-gray-600">
+                      Permite indicar a la app que se encuentra temporalmente en mantenimiento.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    disabled={savingKey === 'maintenance_mode'}
+                    onClick={() => toggle('maintenance_mode')}
+                    className={`relative h-8 w-14 shrink-0 rounded-full transition ${
+                      enabled('maintenance_mode')
+                        ? 'bg-amber-600'
+                        : 'bg-gray-300'
+                    } disabled:opacity-50`}
+                  >
+                    <span
+                      className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${
+                        enabled('maintenance_mode')
+                          ? 'left-7'
+                          : 'left-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            <section className="mt-6 rounded-3xl border border-[#d8b66f]/30 bg-[#fffdf8] p-6">
+              <p className="text-xs font-black tracking-[0.18em] text-[#b28b45]">
+                BACKEND
+              </p>
+
+              <h2 className="mt-2 font-bold text-primary-dark">
+                Supabase conectado
+              </h2>
+
+              <p className="mt-2 text-sm leading-6 text-gray-500">
+                Los cambios realizados aquí se guardan directamente en
+                <code className="mx-1 rounded bg-gray-100 px-1.5 py-0.5">
+                  app_config
+                </code>
+                .
+              </p>
+            </section>
+          </div>
         </>
       )}
     </AdminShell>

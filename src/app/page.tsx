@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { FormEvent, useEffect, useState } from 'react';
 
+import { LogoMark } from '@/components/LogoMark';
 import { AdminShell } from '@/components/AdminShell';
 import { supabase } from '@/lib/supabase';
 
@@ -175,6 +176,8 @@ export default function Home() {
     return (
       <main className="flex min-h-screen items-center justify-center bg-[#f5f6f3] p-6">
         <div className="w-full max-w-md rounded-3xl bg-white p-8 shadow-lg">
+          <LogoMark className="mx-auto mb-6 h-16 w-16 bg-primary-dark" />
+
           <p className="text-center text-xs font-bold tracking-[0.25em] text-[#b28b45]">
             MEZQUITA MAYOR
           </p>
