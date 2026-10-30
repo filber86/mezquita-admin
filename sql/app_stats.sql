@@ -68,7 +68,8 @@ begin
       or (ev = 'screen' and nm in ('inicio', 'oraciones', 'agenda', 'contenido', 'mas'))
       or (ev = 'section' and nm in ('quran', 'guide', 'learn', 'dua', 'qibla', 'zakat', 'favorites', 'editorial', 'fiqh', 'about'))
       or (ev = 'action' and nm in ('fiqh_sent', 'registration_sent', 'khutbah_play', 'dua_audio_play',
-                                    'donation_paid', 'zakat_paid', 'place_changed', 'month_sheet_shared'))
+                                    'donation_paid', 'zakat_paid', 'place_changed', 'month_sheet_shared',
+                                    'onboarding_done', 'onboarding_skipped', 'reminders_enabled'))
     ) then
       continue;
     end if;

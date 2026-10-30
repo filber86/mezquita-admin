@@ -63,6 +63,11 @@ const sections = [
     description: 'Mostrar la app con el diseño nuevo (fondo neutro, Inicio con el logo). Apagado, vuelve el diseño de siempre al abrir la app. Solo afecta a la versión 1.2.0 en adelante.',
   },
   {
+    key: 'onboarding_enabled',
+    title: 'Bienvenida',
+    description: 'Al instalar la app, tres pasos para elegir idioma, lugar y avisos de oración. A quien ya la usaba sin avisos se le muestra una vez una tarjeta en Inicio para activarlos. Solo afecta a la versión 1.2.0 en adelante.',
+  },
+  {
     key: 'announcements_enabled',
     title: 'Avisos',
     description: 'Permitir mostrar avisos administrados desde Supabase.',
